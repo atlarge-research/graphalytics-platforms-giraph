@@ -36,3 +36,5 @@ export HADOOP_HOME=$hadoophome
 platform_classpath="$($HADOOP_HOME/bin/hadoop classpath)"
 export platform_classpath=$platform_classpath
 
+export platform="giraph"
+
