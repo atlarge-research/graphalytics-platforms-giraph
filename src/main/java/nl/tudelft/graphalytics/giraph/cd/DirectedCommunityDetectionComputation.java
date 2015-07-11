@@ -71,7 +71,8 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
     public void compute(Vertex<LongWritable, CommunityDetectionLabel, BooleanWritable> vertex,
 			Iterable<CommunityDetectionMessage> messages) throws IOException {
         // max iteration, a stopping condition for data-sets which do not converge
-        if (this.getSuperstep() > maxIterations+2) {
+        if (this.getSuperstep() > maxIterations) {
+            determineLabel(vertex, messages);
             vertex.voteToHalt();
             return;
         }
