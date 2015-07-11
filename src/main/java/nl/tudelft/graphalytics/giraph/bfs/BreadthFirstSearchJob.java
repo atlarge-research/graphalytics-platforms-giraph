@@ -16,8 +16,10 @@
 package nl.tudelft.graphalytics.giraph.bfs;
 
 import static nl.tudelft.graphalytics.giraph.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
+import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.io.EdgeInputFormat;
@@ -93,6 +95,8 @@ public class BreadthFirstSearchJob extends GiraphJob {
 	@Override
 	protected void configure(GiraphConfiguration config) {
 		SOURCE_VERTEX.set(config, parameters.getSourceVertex());
+		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in BFS)
+		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}
 
 }
