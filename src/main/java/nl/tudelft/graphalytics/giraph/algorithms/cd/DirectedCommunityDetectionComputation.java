@@ -53,6 +53,8 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 	private float nodePreference;
 	private float hopAttenuation;
 	private int maxIterations;
+
+    private static final float EPSILON = 0.0001f;
 	
 	@Override
 	public void setConf(ImmutableClassesGiraphConfiguration<LongWritable, CommunityDetectionLabel,
@@ -148,7 +150,9 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
         float highestScore = Float.MIN_VALUE;
         CommunityDetectionLabelStatistics winningLabel = null;
         for (Map.Entry<LongWritable, CommunityDetectionLabelStatistics> singleLabel : labelStatistics.entrySet()) {
-            if (singleLabel.getValue().getAggScore() > highestScore) {
+            if (singleLabel.getValue().getAggScore() > highestScore + EPSILON ||
+                    (Math.abs(singleLabel.getValue().getAggScore() - highestScore) <= EPSILON &&
+                            singleLabel.getKey().get() > winningLabel.getLabel().get())) {
                 highestScore = singleLabel.getValue().getAggScore();
                 winningLabel = singleLabel.getValue();
             }
