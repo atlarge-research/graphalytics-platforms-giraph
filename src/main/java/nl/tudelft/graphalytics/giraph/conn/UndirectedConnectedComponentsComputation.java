@@ -45,47 +45,40 @@ public class UndirectedConnectedComponentsComputation extends BasicComputation<L
     public void compute(Vertex<LongWritable, LongWritable, NullWritable> vertex, Iterable<LongWritable> messages) throws IOException {
         // First superstep is special, because we can simply look at the neighbors
         if (getSuperstep() == 0) {
-	        // Initialize value to own id
-	        vertex.setValue(vertex.getId());
-
-	        long currentComponent = vertex.getId().get();
+            // Initialize value to minimum id of neighbours
+            long minId = vertex.getId().get();
             for (Edge<LongWritable, NullWritable> edge : vertex.getEdges()) {
-                long neighbor = edge.getTargetVertexId().get();
-                if (neighbor < currentComponent) {
-                    currentComponent = neighbor;
+                long targetVertexId = edge.getTargetVertexId().get();
+                if (targetVertexId < minId) {
+                    minId = targetVertexId;
                 }
             }
-            // only need to send value if it is not the own id
-            if (currentComponent != vertex.getValue().get()) {
-                vertex.setValue(new LongWritable(currentComponent));
-                for (Edge<LongWritable, NullWritable> edge : vertex.getEdges()) {
-                    LongWritable neighbor = edge.getTargetVertexId();
-                    if (neighbor.get() > currentComponent) {
-                        sendMessage(neighbor, vertex.getValue());
-                    }
-                }
+
+            // Store the new component id and broadcast it if it is not equal to this vertex's own id
+            vertex.getValue().set(minId);
+            if (minId != vertex.getId().get()) {
+                sendMessageToAllEdges(vertex, vertex.getValue());
             }
 
             vertex.voteToHalt();
-            return;
-        }
+        } else {
+            long currentComponent = vertex.getValue().get();
 
-        boolean changed = false;
-	    long currentComponent = vertex.getValue().get();
-        // did we get a smaller id ?
-        for (LongWritable message : messages) {
-            long candidateComponent = message.get();
-            if (candidateComponent < currentComponent) {
-                currentComponent = candidateComponent;
-                changed = true;
+            // did we get a smaller id ?
+            for (LongWritable message : messages) {
+                long candidateComponent = message.get();
+                if (candidateComponent < currentComponent) {
+                    currentComponent = candidateComponent;
+                }
             }
-        }
 
-        // propagate new component id to the neighbors
-        if (changed) {
-            vertex.setValue(new LongWritable(currentComponent));
-            sendMessageToAllEdges(vertex, vertex.getValue());
+            // propagate new component id to the neighbors
+            if (currentComponent != vertex.getValue().get()) {
+                vertex.getValue().set(currentComponent);
+                sendMessageToAllEdges(vertex, vertex.getValue());
+            }
+
+            vertex.voteToHalt();
         }
-        vertex.voteToHalt();
     }
 }

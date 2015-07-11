@@ -16,6 +16,7 @@
 package nl.tudelft.graphalytics.giraph.conn;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.io.EdgeInputFormat;
@@ -27,6 +28,8 @@ import org.apache.giraph.io.formats.LongLongNullTextInputFormat;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
+
+import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 /**
  * The job configuration of the connected components implementation for Giraph.
@@ -84,7 +87,8 @@ public class ConnectedComponentsJob extends GiraphJob {
 
 	@Override
 	protected void configure(GiraphConfiguration config) {
-		// No configuration necessary
+		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in CC)
+		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}
 
 }
