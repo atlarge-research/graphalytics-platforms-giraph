@@ -16,9 +16,11 @@
 package nl.tudelft.graphalytics.giraph.bfs;
 
 import static nl.tudelft.graphalytics.giraph.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
+import static nl.tudelft.graphalytics.giraph.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX_KEY;
 
 import java.io.IOException;
 
+import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.LongWritable;
@@ -32,25 +34,33 @@ import org.apache.hadoop.io.NullWritable;
 public class BreadthFirstSearchComputation extends BasicComputation<LongWritable, LongWritable, NullWritable, LongWritable> {
 
 	/** Constant vertex value representing an unvisited vertex */ 
-	private static final LongWritable UNVISITED = new LongWritable(Long.MAX_VALUE);
-	
+	private static final long UNVISITED = Long.MAX_VALUE;
+	/** Source vertex ID read at the start of the algorithm execution */
+	private long sourceVertexId = -1L;
+
+	@Override
+	public void setConf(ImmutableClassesGiraphConfiguration<LongWritable, LongWritable, NullWritable> conf) {
+		super.setConf(conf);
+		sourceVertexId = SOURCE_VERTEX.get(getConf());
+	}
+
 	@Override
 	public void compute(Vertex<LongWritable, LongWritable, NullWritable> vertex,
 			Iterable<LongWritable> messages) throws IOException {
-		LongWritable bfsDepth = new LongWritable(getSuperstep());
+		long bfsDepth = getSuperstep();
 		
 		if (getSuperstep() == 0) {
 			// During the first superstep only the source vertex should be active
-			if (vertex.getId().get() == SOURCE_VERTEX.get(getConf())) {
-				vertex.setValue(bfsDepth);
+			if (vertex.getId().get() == sourceVertexId) {
+				vertex.getValue().set(bfsDepth);
 				sendMessageToAllEdges(vertex, vertex.getValue());
 			} else {
-				vertex.setValue(UNVISITED);
+				vertex.getValue().set(UNVISITED);
 			}
 		} else {
 			// If this vertex was not yet visited, set the vertex depth and propagate to neighbours
-			if (vertex.getValue().get() == UNVISITED.get()) {
-				vertex.setValue(bfsDepth);
+			if (vertex.getValue().get() == UNVISITED) {
+				vertex.getValue().set(bfsDepth);
 				sendMessageToAllEdges(vertex, vertex.getValue());
 			}
 		}
