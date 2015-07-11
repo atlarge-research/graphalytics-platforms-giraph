@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
  * @author Tim Hegeman
  */
 public abstract class CommunityDetectionVertexInputFormat<E extends Writable> extends
-		TextVertexInputFormat<LongWritable, CDLabel, E> {
+		TextVertexInputFormat<LongWritable, CommunityDetectionLabel, E> {
 
 	private static final Pattern SEPARATOR = Pattern.compile("[\t ]");
 
@@ -51,13 +51,12 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 			TextVertexReaderFromEachLineProcessed<String[]> {
 		/** Cached vertex id for the current line */
 		private LongWritable id;
-		private CDLabel value;
+		private final CommunityDetectionLabel DEFAULT_VALUE = new CommunityDetectionLabel();
 
 		@Override
 		protected String[] preprocessLine(Text line) throws IOException {
 			String[] tokens = SEPARATOR.split(line.toString());
 			id = new LongWritable(Long.parseLong(tokens[0]));
-			value = new CDLabel();
 			return tokens;
 		}
 
@@ -67,8 +66,8 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 		}
 
 		@Override
-		protected CDLabel getValue(String[] tokens) throws IOException {
-			return value;
+		protected CommunityDetectionLabel getValue(String[] tokens) throws IOException {
+			return DEFAULT_VALUE;
 		}
 
 		@Override
@@ -95,9 +94,11 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 
 	public static class Directed extends CommunityDetectionVertexInputFormat<BooleanWritable> {
 
+		private static final BooleanWritable DEFAULT_VALUE = new BooleanWritable(false);
+
 		@Override
 		protected BooleanWritable defaultValue() {
-			return new BooleanWritable(false);
+			return DEFAULT_VALUE;
 		}
 
 	}

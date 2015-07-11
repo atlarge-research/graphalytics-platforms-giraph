@@ -48,12 +48,11 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 	}
 
 	private static <E extends Writable> CommunityDetectionOutput outputFromResultGraph(
-			TestGraph<LongWritable, CDLabel, E> result) {
+			TestGraph<LongWritable, CommunityDetectionLabel, E> result) {
 		Map<Long, Long> communityIds = new HashMap<>();
-		for (Map.Entry<LongWritable, Vertex<LongWritable, CDLabel, E>> vertexEntry :
+		for (Map.Entry<LongWritable, Vertex<LongWritable, CommunityDetectionLabel, E>> vertexEntry :
 				result.getVertices().entrySet()) {
-			Text label = vertexEntry.getValue().getValue().getLabelName();
-			communityIds.put(vertexEntry.getKey().get(), Long.parseLong(label.toString()));
+			communityIds.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().getLabel().get());
 		}
 
 		return new CommunityDetectionOutput(communityIds);
@@ -65,10 +64,11 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 		GiraphConfiguration configuration = configurationFromParameters(DirectedCommunityDetectionComputation.class,
 				parameters);
 
-		TestGraph<LongWritable, CDLabel, BooleanWritable> inputGraph =
-				GiraphTestGraphLoader.createGraph(configuration, graph, new CDLabel(), new BooleanWritable());
+		TestGraph<LongWritable, CommunityDetectionLabel, BooleanWritable> inputGraph =
+				GiraphTestGraphLoader.createGraph(configuration, graph, new CommunityDetectionLabel(),
+						new BooleanWritable());
 
-		TestGraph<LongWritable, CDLabel, BooleanWritable> result =
+		TestGraph<LongWritable, CommunityDetectionLabel, BooleanWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
 
 		return outputFromResultGraph(result);
@@ -80,10 +80,11 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 		GiraphConfiguration configuration = configurationFromParameters(UndirectedCommunityDetectionComputation.class,
 				parameters);
 
-		TestGraph<LongWritable, CDLabel, NullWritable> inputGraph =
-				GiraphTestGraphLoader.createGraph(configuration, graph, new CDLabel(), NullWritable.get());
+		TestGraph<LongWritable, CommunityDetectionLabel, NullWritable> inputGraph =
+				GiraphTestGraphLoader.createGraph(configuration, graph, new CommunityDetectionLabel(),
+						NullWritable.get());
 
-		TestGraph<LongWritable, CDLabel, NullWritable> result =
+		TestGraph<LongWritable, CommunityDetectionLabel, NullWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
 
 		return outputFromResultGraph(result);
