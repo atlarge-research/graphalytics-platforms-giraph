@@ -18,9 +18,12 @@ package nl.tudelft.graphalytics.giraph.algorithms.cd;
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.HOP_ATTENUATION;
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.MAX_ITERATIONS;
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.NODE_PREFERENCE;
+import static org.apache.giraph.conf.GiraphConstants.VERTEX_EDGES_CLASS;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
 import org.apache.giraph.conf.GiraphConfiguration;
+import org.apache.giraph.conf.GiraphConstants;
+import org.apache.giraph.edge.HashMapEdges;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.io.EdgeInputFormat;
 import org.apache.giraph.io.EdgeOutputFormat;
@@ -99,6 +102,11 @@ public class CommunityDetectionJob extends GiraphJob {
 		NODE_PREFERENCE.set(config, parameters.getNodePreference());
 		HOP_ATTENUATION.set(config, parameters.getHopAttenuation());
 		MAX_ITERATIONS.set(config, parameters.getMaxIterations());
+
+		if (graphFormat.isDirected()) {
+			// Use edge store optimized for random access behavior (edge value lookup)
+			VERTEX_EDGES_CLASS.set(config, HashMapEdges.class);
+		}
 	}
 
 }
