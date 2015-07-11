@@ -19,6 +19,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
 
 /**
@@ -28,60 +29,141 @@ import org.apache.hadoop.io.Writable;
  */
 public class LocalClusteringCoefficientMessage implements Writable {
 
+	private static final int SOURCE_PRESENT = 1;
+	private static final int EDGELIST_PRESENT = 2;
+	private static final int MATCHCOUNT_PRESENT = 4;
+
+	private int validFields;
 	private long source;
-	private long destination;
-	
-	/**
-	 * Used for acknowledging the existence of an edge. Because the existence of
-	 * the message is enough to indicate that one of the requested edges exist,
-	 * we can just count the number of messages and do not care about content. 
-	 */
+	private long[] edgeList;
+	private int matchCount;
+
 	public LocalClusteringCoefficientMessage() {
-		this.source = this.destination = 0;
+		this(0, 0, null, 0);
 	}
-	
+
 	/**
 	 * Used for informing neighbours of the existence of an incoming edge
 	 * (directed graphs only).
-	 * 
+	 *
 	 * @param source the source vertex ID.
 	 */
 	public LocalClusteringCoefficientMessage(long source) {
-		this.source = source;
-		this.destination = 0;
+		this(SOURCE_PRESENT, source, null, 0);
+	}
+
+	/**
+	 * Used for acknowledging the existence of a number of edges.
+	 *
+	 * @param matchCount the number of requested edges found.
+	 */
+	public LocalClusteringCoefficientMessage(int matchCount) {
+		this(MATCHCOUNT_PRESENT, 0, null, matchCount);
 	}
 	
 	/**
-	 * Used for requesting information about the existence of some edge (between
-	 * the recipient of the message and destination) while expecting an answer
-	 * to be sent back to source.
+	 * Used for requesting information about the existence of edges (between
+	 * the recipient of the message and a list of destination edges) while
+	 * expecting an answer to be sent back to source.
 	 * 
 	 * @param source the source vertex ID.
-	 * @param destination the destination vertex ID of the edge we wish to
+	 * @param edgeList the destination vertex IDs of the edges we wish to
 	 * 	know the existence of.
 	 */
-	public LocalClusteringCoefficientMessage(long source, long destination) {
-		this.source = source;
-		this.destination = destination;
+	public LocalClusteringCoefficientMessage(long source, long[] edgeList) {
+		this(SOURCE_PRESENT | EDGELIST_PRESENT, source, edgeList, 0);
 	}
-	
+
+	private LocalClusteringCoefficientMessage(int validFields, long source, long[] edgeList, int matchCount) {
+		this.validFields = validFields;
+		this.source = source;
+		this.edgeList = edgeList;
+		this.matchCount = matchCount;
+	}
+
+	public boolean hasSource() {
+		return (validFields & SOURCE_PRESENT) == SOURCE_PRESENT;
+	}
+
 	public long getSource() {
 		return source;
 	}
-	public long getDestination() {
-		return destination;
+
+	public void setSource(long source) {
+		this.source = source;
+		validFields |= SOURCE_PRESENT;
 	}
-	
+
+	public void clearSource() {
+		validFields &= ~SOURCE_PRESENT;
+	}
+
+	public boolean hasEdgeList() {
+		return (validFields & EDGELIST_PRESENT) == EDGELIST_PRESENT;
+	}
+
+	public long[] getEdgeList() {
+		return edgeList;
+	}
+
+	public void setEdgeList(long[] edgeList) {
+		this.edgeList = edgeList;
+		validFields |= EDGELIST_PRESENT;
+	}
+
+	public void clearEdgeList() {
+		validFields &= ~EDGELIST_PRESENT;
+	}
+
+	public boolean hasMatchCount() {
+		return (validFields & MATCHCOUNT_PRESENT) == MATCHCOUNT_PRESENT;
+	}
+
+	public int getMatchCount() {
+		return matchCount;
+	}
+
+	public void setMatchCount(int matchCount) {
+		this.matchCount = matchCount;
+		validFields |= MATCHCOUNT_PRESENT;
+	}
+
+	public void clearMatchCount() {
+		validFields &= ~MATCHCOUNT_PRESENT;
+	}
+
 	@Override
 	public void write(DataOutput out) throws IOException {
-		out.writeLong(source);
-		out.writeLong(destination);
+		out.writeChar(validFields);
+		if ((validFields & SOURCE_PRESENT) == SOURCE_PRESENT) {
+			out.writeLong(source);
+		}
+		if ((validFields & EDGELIST_PRESENT) == EDGELIST_PRESENT) {
+			out.writeInt(edgeList.length);
+			for (long edge : edgeList) {
+				out.writeLong(edge);
+			}
+		}
+		if ((validFields & MATCHCOUNT_PRESENT) == MATCHCOUNT_PRESENT) {
+			out.writeInt(matchCount);
+		}
 	}
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
-		source = in.readLong();
-		destination = in.readLong();
+		validFields = in.readChar();
+		if ((validFields & SOURCE_PRESENT) == SOURCE_PRESENT) {
+			source = in.readLong();
+		}
+		if ((validFields & EDGELIST_PRESENT) == EDGELIST_PRESENT) {
+			edgeList = new long[in.readInt()];
+			for (int i = 0; i < edgeList.length; i++) {
+				edgeList[i] = in.readLong();
+			}
+		}
+		if ((validFields & MATCHCOUNT_PRESENT) == MATCHCOUNT_PRESENT) {
+			matchCount = in.readInt();
+		}
 	}
 
 }

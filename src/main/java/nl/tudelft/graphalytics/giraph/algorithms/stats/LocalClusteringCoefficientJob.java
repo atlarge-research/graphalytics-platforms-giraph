@@ -17,6 +17,7 @@ package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
 import org.apache.giraph.aggregators.TextAggregatorWriter;
+import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.io.EdgeInputFormat;
@@ -27,6 +28,8 @@ import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
+
+import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 /**
  * The job configuration of the statistics (LCC) implementation for Giraph.
@@ -93,6 +96,8 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 		config.setAggregatorWriterClass(TextAggregatorWriter.class);
 		config.setInt(TextAggregatorWriter.FREQUENCY, TextAggregatorWriter.AT_THE_END);
 		config.set(TextAggregatorWriter.FILENAME, getOutputPath() + "/aggregators");
+		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in BFS)
+		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}
 
 }

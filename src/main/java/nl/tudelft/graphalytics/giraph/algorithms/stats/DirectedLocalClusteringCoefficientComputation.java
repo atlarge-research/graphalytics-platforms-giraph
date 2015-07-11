@@ -18,9 +18,8 @@ package nl.tudelft.graphalytics.giraph.algorithms.stats;
 import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
+import it.unimi.dsi.fastutil.longs.*;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
@@ -38,23 +37,26 @@ import com.google.common.collect.Iterables;
 public class DirectedLocalClusteringCoefficientComputation extends
 		BasicComputation<LongWritable, DoubleWritable, NullWritable, LocalClusteringCoefficientMessage> {
 
+	private LocalClusteringCoefficientMessage msgObject = new LocalClusteringCoefficientMessage();
+	private LongSet neighbours = new LongOpenHashSet();
+	private LongToLongWritableIterator longWritableIterator = new LongToLongWritableIterator();
+	private LongWritable destinationId = new LongWritable();
+
 	@Override
 	public void compute(Vertex<LongWritable, DoubleWritable, NullWritable> vertex,
 			Iterable<LocalClusteringCoefficientMessage> messages) throws IOException {
 		if (getSuperstep() == 0) {
 			// First superstep: inform all neighbours (outgoing edges) that they have an incoming edge
-			sendMessageToAllEdges(vertex, new LocalClusteringCoefficientMessage(vertex.getId().get()));
-			return;
+			msgObject.setSource(vertex.getId().get());
+			sendMessageToAllEdges(vertex, msgObject);
 		} else if (getSuperstep() == 1) {
 			// Second superstep: create a set of neighbours, for each pair ask if they are connected
-			Set<Long> neighbours = collectNeighbourSet(vertex, messages);
-			sendConnectionInquiries(vertex.getId().get(), neighbours);
-			vertex.setValue(new DoubleWritable(neighbours.size()));
-			return;
+			collectNeighbourSet(vertex, messages);
+			sendConnectionInquiries(vertex.getId().get());
+			vertex.getValue().set(neighbours.size());
 		} else if (getSuperstep() == 2) {
 			// Third superstep: for each inquiry reply iff the requested edge exists
 			sendConnectionReplies(vertex.getEdges(), messages);
-			return;
 		} else if (getSuperstep() == 3) {
 			// Fourth superstep: compute the ratio of responses to requests
 			double lcc = computeLCC(vertex.getValue().get(), messages);
@@ -64,54 +66,48 @@ public class DirectedLocalClusteringCoefficientComputation extends
 		}
 	}
 
-	private static Set<Long> collectNeighbourSet(Vertex<LongWritable, DoubleWritable, NullWritable> vertex,
+	private void collectNeighbourSet(Vertex<LongWritable, DoubleWritable, NullWritable> vertex,
 			Iterable<LocalClusteringCoefficientMessage> messages) {
-		Set<Long> neighbours = new HashSet<>();
-		
+		neighbours.clear();
+
 		// Add all outgoing edges to the neighbours set
 		for (Edge<LongWritable, NullWritable> edge : vertex.getEdges())
 			neighbours.add(edge.getTargetVertexId().get());
 		// Add all incoming edges to the neighbours set
 		for (LocalClusteringCoefficientMessage msg : messages)
 			neighbours.add(msg.getSource());
-		
-		return neighbours;
 	}
 	
-	private void sendConnectionInquiries(long sourceVertexId, Set<Long> neighbours) {
+	private void sendConnectionInquiries(long sourceVertexId) {
 		// No messages to be sent if there is at most one neighbour
 		if (neighbours.size() <= 1)
 			return;
-		
-		// Send out inquiries in an all-pair fashion
-		LongWritable messageDestinationId = new LongWritable();
-		for (long destinationNeighbour : neighbours) {
-			LocalClusteringCoefficientMessage msg = new LocalClusteringCoefficientMessage(sourceVertexId, destinationNeighbour);
-			for (long inquiredNeighbour : neighbours) {
-				// Do not ask if a node is connected to itself
-				if (destinationNeighbour == inquiredNeighbour)
-					continue;
-				messageDestinationId.set(inquiredNeighbour);
-				sendMessage(messageDestinationId, msg);
-				
-			}
-		}
+
+		// Send the set of neighbours to all neighbours
+		msgObject.setSource(sourceVertexId);
+		msgObject.setEdgeList(neighbours.toLongArray());
+		longWritableIterator.reset(neighbours);
+		sendMessageToMultipleEdges(longWritableIterator, msgObject);
 	}
 	
 	private void sendConnectionReplies(Iterable<Edge<LongWritable, NullWritable>> edges,
 			Iterable<LocalClusteringCoefficientMessage> inquiries) {
 		// Construct a lookup set for the list of edges
-		Set<Long> edgeLookup = new HashSet<>();
+		neighbours.clear();
 		for (Edge<LongWritable, NullWritable> edge : edges)
-			edgeLookup.add(edge.getTargetVertexId().get());
-		// Loop through the inquiries and reply to those for which an edge exists
-		LongWritable destinationId = new LongWritable();
-		LocalClusteringCoefficientMessage confirmation = new LocalClusteringCoefficientMessage();
+			neighbours.add(edge.getTargetVertexId().get());
+		// Loop through the inquiries, count the number of existing edges, and send replies
 		for (LocalClusteringCoefficientMessage msg : inquiries) {
-			if (edgeLookup.contains(msg.getDestination())) {
-				destinationId.set(msg.getSource());
-				sendMessage(destinationId, confirmation);
+			int matchCount = 0;
+			for (long edgeId : msg.getEdgeList()) {
+				if (neighbours.contains(edgeId)) {
+					matchCount++;
+				}
 			}
+			// Send the reply
+			destinationId.set(msg.getSource());
+			msgObject.setMatchCount(matchCount);
+			sendMessage(destinationId, msgObject);
 		}
 	}
 	
@@ -121,8 +117,12 @@ public class DirectedLocalClusteringCoefficientComputation extends
 			return 0.0;
 
 		// Count the number of (positive) replies
-		long numberOfMessages = Iterables.size(messages);
+		long numberOfMatches = 0;
+		for (LocalClusteringCoefficientMessage msg : messages) {
+			numberOfMatches += msg.getMatchCount();
+		}
 		// Compute the LCC as the ratio between the number of existing edges and number of possible edges
-		return numberOfMessages / numberOfNeighbours / (numberOfNeighbours - 1);
+		return numberOfMatches / numberOfNeighbours / (numberOfNeighbours - 1);
 	}
+
 }
