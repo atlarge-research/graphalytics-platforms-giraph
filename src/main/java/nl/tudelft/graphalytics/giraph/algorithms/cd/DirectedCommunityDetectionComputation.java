@@ -15,10 +15,8 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.HOP_ATTENUATION;
-import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.MAX_ITERATIONS;
-import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.NODE_PREFERENCE;
-
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
@@ -28,6 +26,8 @@ import org.apache.hadoop.io.*;
 
 import java.io.IOException;
 import java.util.*;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.*;
 
 /**
  * Community Detection algorithm
@@ -49,13 +49,11 @@ import java.util.*;
  */
 public class DirectedCommunityDetectionComputation extends BasicComputation<LongWritable, CommunityDetectionLabel,
 		BooleanWritable, CommunityDetectionMessage> {
-    // Load the parameters from the configuration before the compute method to save expensive lookups
+    // Load the parameters from the configuration before the compute method to save expensive look-ups
 	private float nodePreference;
 	private float hopAttenuation;
 	private int maxIterations;
 
-    private static final float EPSILON = 0.0001f;
-	
 	@Override
 	public void setConf(ImmutableClassesGiraphConfiguration<LongWritable, CommunityDetectionLabel,
             BooleanWritable> conf) {
@@ -79,7 +77,7 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
             return;
         }
 
-        // send vertex id to outgoing neigbhours, so that all vertices know their incoming edges.
+        // send vertex id to outgoing neighbours, so that all vertices know their incoming edges.
         if (getSuperstep() == 0) {
             msgObject.setSourceId(vertex.getId());
 			sendMessageToAllEdges(vertex, msgObject);
@@ -101,7 +99,7 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
                 }
             }
 			// initialize algorithm, set label as the vertex id, set label score as 1.0
-			vertex.getValue().setLabel(vertex.getId());
+			vertex.getValue().setLabel(vertex.getId().get());
             vertex.getValue().setLabelScore(1.0f);
             vertex.getValue().setNumberOfNeighbours(edges.size());
 
@@ -123,6 +121,8 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
         sendMessageToAllEdges(vertex, msgObject);
     }
 
+    private Long2ObjectMap<CommunityDetectionLabelStatistics> labelStatistics = new Long2ObjectOpenHashMap<>();
+
     /**
      * Chooses new label AND updates label score
      * - chose new label based on SUM of Label_score(sum all scores of label X) x f(i')^m, where m is number of edges (ignore edge weight == 1) -> EQ 2
@@ -131,12 +131,11 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
     private void determineLabel(Vertex<LongWritable, CommunityDetectionLabel, BooleanWritable> vertex,
             Iterable<CommunityDetectionMessage> messages) {
         // Compute for each incoming label the aggregate and maximum scores
-        Map<LongWritable, CommunityDetectionLabelStatistics> labelStatistics = new HashMap<>();
+        labelStatistics.clear();
         for (CommunityDetectionMessage message : messages) {
-            LongWritable label = message.getLabel().getLabel();
+            long label = message.getLabel().getLabel();
             if (!labelStatistics.containsKey(label)) {
-                LongWritable cloneLabel = new LongWritable(label.get());
-                labelStatistics.put(cloneLabel, new CommunityDetectionLabelStatistics(cloneLabel));
+                labelStatistics.put(label, new CommunityDetectionLabelStatistics(label));
             }
 
             if (vertex.getEdgeValue(message.getSourceId()).get()) {
@@ -149,17 +148,17 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
         // Find the label with the highest aggregate score
         float highestScore = Float.MIN_VALUE;
         CommunityDetectionLabelStatistics winningLabel = null;
-        for (Map.Entry<LongWritable, CommunityDetectionLabelStatistics> singleLabel : labelStatistics.entrySet()) {
+        for (Long2ObjectMap.Entry<CommunityDetectionLabelStatistics> singleLabel : labelStatistics.long2ObjectEntrySet()) {
             if (singleLabel.getValue().getAggScore() > highestScore + EPSILON ||
                     (Math.abs(singleLabel.getValue().getAggScore() - highestScore) <= EPSILON &&
-                            singleLabel.getKey().get() > winningLabel.getLabel().get())) {
+                            singleLabel.getLongKey() > winningLabel.getLabel())) {
                 highestScore = singleLabel.getValue().getAggScore();
                 winningLabel = singleLabel.getValue();
             }
         }
 
         // Update the label of this vertex
-        if (vertex.getValue().getLabel().equals(winningLabel.getLabel())) {
+        if (vertex.getValue().getLabel() == winningLabel.getLabel()) {
             vertex.getValue().setLabelScore(winningLabel.getMaxScore());
         } else {
             vertex.getValue().setLabelScore(winningLabel.getMaxScore() - hopAttenuation);

@@ -43,6 +43,9 @@ public final class CommunityDetectionConfiguration {
 	public static final IntConfOption MAX_ITERATIONS = new IntConfOption(
 			MAX_ITERATIONS_KEY, 1, "Maximum number of iterations to run the community detection algorithm for.");
 
+	/** Maximum difference between label scores for them to be considered equal */
+	public static final float EPSILON = 0.0001f;
+
 	private CommunityDetectionConfiguration() {
 	}
 

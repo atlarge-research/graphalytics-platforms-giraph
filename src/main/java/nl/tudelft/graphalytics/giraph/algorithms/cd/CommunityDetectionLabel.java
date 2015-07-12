@@ -29,25 +29,25 @@ import java.io.IOException;
  */
 public class CommunityDetectionLabel implements Writable {
 
-	private LongWritable label;
+	private long label;
 	private float labelScore;
 	private int numberOfNeighbours;
 
 	public CommunityDetectionLabel() {
-		this(new LongWritable(), 1.0f, 0);
+		this(0L, 1.0f, 0);
 	}
 
-	public CommunityDetectionLabel(LongWritable label, float labelScore, int numberOfNeighbours) {
+	public CommunityDetectionLabel(long label, float labelScore, int numberOfNeighbours) {
 		this.label = label;
 		this.labelScore = labelScore;
 		this.numberOfNeighbours = numberOfNeighbours;
 	}
 
-	public LongWritable getLabel() {
+	public long getLabel() {
 		return label;
 	}
 
-	public void setLabel(LongWritable label) {
+	public void setLabel(long label) {
 		this.label = label;
 	}
 
@@ -69,14 +69,14 @@ public class CommunityDetectionLabel implements Writable {
 
 	@Override
 	public void write(DataOutput out) throws IOException {
-		label.write(out);
+		out.writeLong(label);
 		out.writeFloat(labelScore);
 		out.writeInt(numberOfNeighbours);
 	}
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
-		label.readFields(in);
+		label = in.readLong();
 		labelScore = in.readFloat();
 		numberOfNeighbours = in.readInt();
 	}

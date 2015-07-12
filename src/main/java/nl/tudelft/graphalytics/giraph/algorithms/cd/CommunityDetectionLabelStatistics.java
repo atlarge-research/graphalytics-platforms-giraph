@@ -15,8 +15,6 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
-import org.apache.hadoop.io.LongWritable;
-
 /**
  *
  *
@@ -24,25 +22,25 @@ import org.apache.hadoop.io.LongWritable;
  * @author Tim Hegeman
  */
 public class CommunityDetectionLabelStatistics {
-    LongWritable label;
+    long label;
     float aggScore;
     float maxScore;
 
-    public CommunityDetectionLabelStatistics(LongWritable label) {
+    public CommunityDetectionLabelStatistics(long label) {
         this(label, 0.0f, Float.MIN_VALUE);
     }
 
-    public CommunityDetectionLabelStatistics(LongWritable label, float aggScore, float maxScore) {
+    public CommunityDetectionLabelStatistics(long label, float aggScore, float maxScore) {
         this.label = label;
         this.aggScore = aggScore;
         this.maxScore = maxScore;
     }
 
-    public LongWritable getLabel() {
+    public long getLabel() {
         return label;
     }
 
-    public void setLabel(LongWritable label) {
+    public void setLabel(long label) {
         this.label = label;
     }
 
@@ -63,7 +61,7 @@ public class CommunityDetectionLabelStatistics {
     }
 
     public void addLabel(CommunityDetectionLabel other, double nodePreference) {
-        if (!other.getLabel().equals(label))
+        if (other.getLabel() != label)
             return;
         aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference);
         if (other.getLabelScore() > maxScore) {
@@ -72,7 +70,7 @@ public class CommunityDetectionLabelStatistics {
     }
 
     public void addLabel(CommunityDetectionLabel other, double nodePreference, double scaleFactor) {
-        if (!other.getLabel().equals(label))
+        if (other.getLabel() != label)
             return;
         aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference) * scaleFactor;
         if (other.getLabelScore() > maxScore) {
@@ -81,7 +79,7 @@ public class CommunityDetectionLabelStatistics {
     }
 
     public void addStatistics(CommunityDetectionLabelStatistics other) {
-        if (!other.label.equals(label))
+        if (other.label != label)
             return;
         aggScore += other.aggScore;
         if (other.maxScore > maxScore) {

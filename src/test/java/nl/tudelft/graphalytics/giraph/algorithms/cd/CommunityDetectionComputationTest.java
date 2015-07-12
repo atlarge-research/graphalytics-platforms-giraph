@@ -52,7 +52,7 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 		Map<Long, Long> communityIds = new HashMap<>();
 		for (Map.Entry<LongWritable, Vertex<LongWritable, CommunityDetectionLabel, E>> vertexEntry :
 				result.getVertices().entrySet()) {
-			communityIds.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().getLabel().get());
+			communityIds.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().getLabel());
 		}
 
 		return new CommunityDetectionOutput(communityIds);
