@@ -15,27 +15,18 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.evo;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.BACKWARD_PROBABILITY;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.FORWARD_PROBABILITY;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.MAX_ITERATIONS;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
+import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelData.ForestFireModelState;
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.edge.EdgeFactory;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelData.ForestFireModelState;
+
+import java.io.IOException;
+import java.util.*;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.*;
 
 /**
  * Forest fire model computation for directed graphs.
@@ -49,7 +40,7 @@ public class DirectedForestFireModelComputation extends
 	private float forwardProbability;
 	private float backwardProbability;
 	private Random rnd = new Random();
-	
+
 	@Override
 	public void setConf(
 			ImmutableClassesGiraphConfiguration<LongWritable, ForestFireModelData, NullWritable> conf) {
@@ -58,7 +49,7 @@ public class DirectedForestFireModelComputation extends
 		forwardProbability = FORWARD_PROBABILITY.get(getConf());
 		backwardProbability = BACKWARD_PROBABILITY.get(getConf());
 	}
-	
+
 	@Override
 	public void compute(
 			Vertex<LongWritable, ForestFireModelData, NullWritable> vertex,
@@ -77,9 +68,9 @@ public class DirectedForestFireModelComputation extends
 			vertex.voteToHalt();
 			return;
 		}
-		
+
 		// Handle the state-based propagation of the forest fire
-		int indexIntoStateLoop = (int)((superstep - 2) % 3);
+		int indexIntoStateLoop = (int) ((superstep - 2) % 3);
 		if (indexIntoStateLoop == 0) {
 			// Process incoming messages ("catching fire")
 			catchFire(vertex, messages);
@@ -93,7 +84,7 @@ public class DirectedForestFireModelComputation extends
 			burnLinks(vertex, messages);
 			// Finally, burn out the vertex if it was burning
 			burnOut(vertex);
-			
+
 		}
 		vertex.voteToHalt();
 	}
@@ -101,12 +92,12 @@ public class DirectedForestFireModelComputation extends
 	private void informNeighboursOfEdges(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {
 		sendMessageToAllEdges(vertex, ForestFireModelMessage.neighbourNotification(vertex.getId().get()));
 	}
-	
+
 	private void runForAmbassador(long vertexId) {
 		ForestFireModelWorkerContext context = this.<ForestFireModelWorkerContext>getWorkerContext();
 		context.registerVertex(vertexId);
 	}
-	
+
 	private void collectInEdges(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex,
 			Iterable<ForestFireModelMessage> messages) {
 		List<Long> edges = new ArrayList<>();
@@ -115,7 +106,7 @@ public class DirectedForestFireModelComputation extends
 		}
 		vertex.setValue(ForestFireModelData.fromInEdges(edges));
 	}
-	
+
 	private void createVertexIfAmbassador(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex)
 			throws IOException {
 		ForestFireModelWorkerContext context = this.<ForestFireModelWorkerContext>getWorkerContext();
@@ -132,14 +123,14 @@ public class DirectedForestFireModelComputation extends
 			addEdgeRequest(new LongWritable(newVertexId), EdgeFactory.create(vertex.getId()));
 		}
 	}
-	
+
 	private void catchFire(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex,
 			Iterable<ForestFireModelMessage> messages) {
 		for (ForestFireModelMessage message : messages) {
 			vertex.getValue().setState(message.getInstigatorId(), ForestFireModelState.BURNING);
 		}
 	}
-	
+
 	private void requestNeighbourLiveness(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {
 		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates()) {
 			if (state.getValue() == ForestFireModelState.BURNING) {
@@ -154,7 +145,7 @@ public class DirectedForestFireModelComputation extends
 			}
 		}
 	}
-	
+
 	private void replyToLivenessRequests(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex,
 			Iterable<ForestFireModelMessage> messages) {
 		for (ForestFireModelMessage message : messages) {
@@ -165,7 +156,7 @@ public class DirectedForestFireModelComputation extends
 			}
 		}
 	}
-	
+
 	private void burnLinks(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex,
 			Iterable<ForestFireModelMessage> messages) throws IOException {
 		// Create a fast lookup for incoming node IDs
@@ -211,17 +202,17 @@ public class DirectedForestFireModelComputation extends
 			}
 		}
 	}
-	
+
 	private static void addToLinksMap(Map<Long, Set<Long>> linksMap, long instigatorId, long sourceId) {
 		if (!linksMap.containsKey(instigatorId))
 			linksMap.put(instigatorId, new HashSet<Long>());
 		linksMap.get(instigatorId).add(sourceId);
 	}
-	
+
 	private Set<Long> selectLinksFromSet(Set<Long> links, int amount) {
 		if (amount >= links.size())
 			return links;
-		
+
 		List<Long> linksAsList = new ArrayList<>(links);
 		Set<Long> selection = new HashSet<>();
 		while (amount > 0) {
@@ -232,18 +223,18 @@ public class DirectedForestFireModelComputation extends
 		}
 		return selection;
 	}
-	
+
 	private int getGeometricVariable(float p) {
 		if (p == 1.0f)
 			return 0;
-		return (int)(Math.log(rnd.nextFloat()) / Math.log(1 - p)); 
+		return (int) (Math.log(rnd.nextFloat()) / Math.log(1 - p));
 	}
-	
+
 	private void burnOut(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {
 		// Loop through the list of states and replacing burning with burned
 		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates())
 			if (state.getValue() == ForestFireModelState.BURNING)
 				vertex.getValue().setState(state.getKey(), ForestFireModelState.BURNED);
 	}
-	
+
 }

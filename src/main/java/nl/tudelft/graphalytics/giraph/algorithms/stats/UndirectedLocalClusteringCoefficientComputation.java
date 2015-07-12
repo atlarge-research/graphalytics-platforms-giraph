@@ -15,12 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.apache.giraph.edge.Edge;
@@ -30,7 +25,9 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 
-import com.google.common.collect.Iterables;
+import java.io.IOException;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
 
 /**
  * Computation for the local clustering coefficient algorithm on Giraph for undirected graphs.
@@ -66,24 +63,24 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 
 	private void collectNeighbourSet(Iterable<Edge<LongWritable, NullWritable>> edges) {
 		neighbours.clear();
-		
+
 		// Add all edges to the neighbours set
 		for (Edge<LongWritable, NullWritable> edge : edges)
 			neighbours.add(edge.getTargetVertexId().get());
 	}
-	
+
 	private void sendConnectionInquiries(long sourceVertexId) {
 		// No messages to be sent if there is at most one neighbour
 		if (neighbours.size() <= 1)
 			return;
-		
+
 		// Send out inquiries in an all-pair fashion
 		msgObject.setSource(sourceVertexId);
 		msgObject.setEdgeList(neighbours.toLongArray());
 		longWritableIterator.reset(neighbours);
 		sendMessageToMultipleEdges(longWritableIterator, msgObject);
 	}
-	
+
 	private void sendConnectionReplies(Iterable<Edge<LongWritable, NullWritable>> edges,
 			Iterable<LocalClusteringCoefficientMessage> inquiries) {
 		// Construct a lookup set for the list of edges
@@ -102,7 +99,7 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 			sendMessage(destinationId, msgObject);
 		}
 	}
-	
+
 	private static double computeLCC(long numberOfNeighbours, Iterable<LocalClusteringCoefficientMessage> messages) {
 		// Any vertex with less than two neighbours can have no edges between neighbours; LCC = 0
 		if (numberOfNeighbours < 2)
@@ -114,6 +111,6 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 			numberOfMatches += msg.getMatchCount();
 		}
 		// Compute the LCC as the ratio between the number of existing edges and number of possible edges
-		return (double)numberOfMatches / numberOfNeighbours / (numberOfNeighbours - 1);
+		return (double) numberOfMatches / numberOfNeighbours / (numberOfNeighbours - 1);
 	}
 }

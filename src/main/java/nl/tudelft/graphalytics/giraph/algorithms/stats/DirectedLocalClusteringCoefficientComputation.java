@@ -15,11 +15,8 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
-
-import java.io.IOException;
-
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
@@ -27,7 +24,9 @@ import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 
-import com.google.common.collect.Iterables;
+import java.io.IOException;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
 
 /**
  * Computation for the local clustering coefficient algorithm on Giraph for directed graphs.
@@ -77,7 +76,7 @@ public class DirectedLocalClusteringCoefficientComputation extends
 		for (LocalClusteringCoefficientMessage msg : messages)
 			neighbours.add(msg.getSource());
 	}
-	
+
 	private void sendConnectionInquiries(long sourceVertexId) {
 		// No messages to be sent if there is at most one neighbour
 		if (neighbours.size() <= 1)
@@ -89,7 +88,7 @@ public class DirectedLocalClusteringCoefficientComputation extends
 		longWritableIterator.reset(neighbours);
 		sendMessageToMultipleEdges(longWritableIterator, msgObject);
 	}
-	
+
 	private void sendConnectionReplies(Iterable<Edge<LongWritable, NullWritable>> edges,
 			Iterable<LocalClusteringCoefficientMessage> inquiries) {
 		// Construct a lookup set for the list of edges
@@ -110,7 +109,7 @@ public class DirectedLocalClusteringCoefficientComputation extends
 			sendMessage(destinationId, msgObject);
 		}
 	}
-	
+
 	private static double computeLCC(double numberOfNeighbours, Iterable<LocalClusteringCoefficientMessage> messages) {
 		// Any vertex with less than two neighbours can have no edges between neighbours; LCC = 0
 		if (numberOfNeighbours < 2)

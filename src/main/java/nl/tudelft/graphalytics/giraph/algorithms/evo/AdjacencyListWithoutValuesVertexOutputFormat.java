@@ -15,8 +15,6 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.evo;
 
-import java.io.IOException;
-
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.io.formats.TextVertexOutputFormat;
@@ -24,6 +22,8 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
 
 /**
  * VertexOutputFormat for writing back graph structure without values. The output format is:
@@ -38,7 +38,7 @@ public class AdjacencyListWithoutValuesVertexOutputFormat extends TextVertexOutp
 			throws IOException, InterruptedException {
 		return new AdjacencyListWriter();
 	}
-	
+
 	private class AdjacencyListWriter extends TextVertexWriterToEachLine {
 
 		@Override
@@ -50,7 +50,7 @@ public class AdjacencyListWithoutValuesVertexOutputFormat extends TextVertexOutp
 			}
 			return new Text(sb.toString());
 		}
-		
+
 	}
 
 }

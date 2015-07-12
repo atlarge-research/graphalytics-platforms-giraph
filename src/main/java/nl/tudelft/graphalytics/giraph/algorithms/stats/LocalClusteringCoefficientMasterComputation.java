@@ -26,7 +26,7 @@ import org.apache.giraph.master.DefaultMasterCompute;
 public class LocalClusteringCoefficientMasterComputation extends DefaultMasterCompute {
 
 	public static final String LCC_AGGREGATOR_NAME = "Average LCC";
-	
+
 	@Override
 	public void compute() {
 	}

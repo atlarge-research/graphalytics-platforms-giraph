@@ -15,12 +15,11 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
+import org.apache.hadoop.io.Writable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Writable;
 
 /**
  * Message class representing the various types of messages sent in the LCC algorithm.
@@ -60,15 +59,15 @@ public class LocalClusteringCoefficientMessage implements Writable {
 	public LocalClusteringCoefficientMessage(int matchCount) {
 		this(MATCHCOUNT_PRESENT, 0, null, matchCount);
 	}
-	
+
 	/**
 	 * Used for requesting information about the existence of edges (between
 	 * the recipient of the message and a list of destination edges) while
 	 * expecting an answer to be sent back to source.
-	 * 
-	 * @param source the source vertex ID.
+	 *
+	 * @param source   the source vertex ID.
 	 * @param edgeList the destination vertex IDs of the edges we wish to
-	 * 	know the existence of.
+	 *                 know the existence of.
 	 */
 	public LocalClusteringCoefficientMessage(long source, long[] edgeList) {
 		this(SOURCE_PRESENT | EDGELIST_PRESENT, source, edgeList, 0);

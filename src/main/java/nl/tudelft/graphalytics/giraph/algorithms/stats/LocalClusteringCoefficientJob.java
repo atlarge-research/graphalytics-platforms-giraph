@@ -16,6 +16,9 @@
 package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.giraph.GiraphJob;
+import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
+import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 import org.apache.giraph.aggregators.TextAggregatorWriter;
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
@@ -25,24 +28,21 @@ import org.apache.giraph.io.EdgeOutputFormat;
 import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
-import nl.tudelft.graphalytics.giraph.GiraphJob;
-import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
-import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 /**
  * The job configuration of the statistics (LCC) implementation for Giraph.
- * 
+ *
  * @author Tim Hegeman
  */
 public class LocalClusteringCoefficientJob extends GiraphJob {
 
 	private GraphFormat graphFormat;
-	
+
 	/**
 	 * Constructs a statistics (LCC) job with a graph format specification.
-	 * 
+	 *
 	 * @param graphFormat the graph format specification
 	 */
 	public LocalClusteringCoefficientJob(GraphFormat graphFormat) {
@@ -62,8 +62,8 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
 		return !graphFormat.isEdgeBased() ?
 				(graphFormat.isDirected() ?
-					DirectedLocalClusteringCoefficientVertexInputFormat.class :
-					UndirectedLocalClusteringCoefficientVertexInputFormat.class) :
+						DirectedLocalClusteringCoefficientVertexInputFormat.class :
+						UndirectedLocalClusteringCoefficientVertexInputFormat.class) :
 				null;
 	}
 
@@ -78,8 +78,8 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
 		return graphFormat.isEdgeBased() ?
 				(graphFormat.isDirected() ?
-					DirectedLongNullTextEdgeInputFormat.class :
-					UndirectedLongNullTextEdgeInputFormat.class) :
+						DirectedLongNullTextEdgeInputFormat.class :
+						UndirectedLongNullTextEdgeInputFormat.class) :
 				null;
 	}
 

@@ -25,7 +25,10 @@ import org.apache.giraph.graph.Computation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.utils.InternalVertexRunner;
 import org.apache.giraph.utils.TestGraph;
-import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.BooleanWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Writable;
 
 import java.util.HashMap;
 import java.util.Map;

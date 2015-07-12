@@ -15,11 +15,11 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
+import org.apache.hadoop.io.Writable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.io.Writable;
 
 /**
  * Wrapper class for computing the average of a sequence of doubles.
@@ -30,7 +30,7 @@ public class DoubleAverage implements Writable {
 
 	private double sum;
 	private long count;
-	
+
 	/**
 	 * Needed for the Writable interface. Do not use.
 	 */
@@ -38,7 +38,7 @@ public class DoubleAverage implements Writable {
 		this.sum = 0.0;
 		this.count = 0;
 	}
-	
+
 	/**
 	 * @param value a single value.
 	 */
@@ -46,11 +46,11 @@ public class DoubleAverage implements Writable {
 		this.sum = value;
 		this.count = 1;
 	}
-	
+
 	/**
 	 * Add another DoubleAverage to this one to yield the
 	 * overall (weighted) average of both.
-	 * 
+	 *
 	 * @param other the DoubleAverage to add
 	 */
 	public void add(DoubleAverage other) {
@@ -67,7 +67,7 @@ public class DoubleAverage implements Writable {
 		else
 			return sum / count;
 	}
-	
+
 	@Override
 	public void write(DataOutput out) throws IOException {
 		out.writeDouble(sum);
@@ -79,7 +79,7 @@ public class DoubleAverage implements Writable {
 		sum = in.readDouble();
 		count = in.readLong();
 	}
-	
+
 	@Override
 	public String toString() {
 		return (count == 0 ? "0" : Double.toString(sum / count));

@@ -16,6 +16,9 @@
 package nl.tudelft.graphalytics.giraph.algorithms.conn;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.giraph.GiraphJob;
+import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
+import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
@@ -25,9 +28,6 @@ import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 import org.apache.giraph.io.formats.LongLongNullTextInputFormat;
-import nl.tudelft.graphalytics.giraph.GiraphJob;
-import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
-import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
@@ -39,10 +39,10 @@ import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TY
 public class ConnectedComponentsJob extends GiraphJob {
 
 	private GraphFormat graphFormat;
-	
+
 	/**
 	 * Constructs a connected component job with a graph format specification.
-	 * 
+	 *
 	 * @param graphFormat the graph format specification
 	 */
 	public ConnectedComponentsJob(GraphFormat graphFormat) {
@@ -74,8 +74,8 @@ public class ConnectedComponentsJob extends GiraphJob {
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
 		return graphFormat.isEdgeBased() ?
 				(graphFormat.isDirected() ?
-					DirectedLongNullTextEdgeInputFormat.class :
-					UndirectedLongNullTextEdgeInputFormat.class) :
+						DirectedLongNullTextEdgeInputFormat.class :
+						UndirectedLongNullTextEdgeInputFormat.class) :
 				null;
 	}
 
