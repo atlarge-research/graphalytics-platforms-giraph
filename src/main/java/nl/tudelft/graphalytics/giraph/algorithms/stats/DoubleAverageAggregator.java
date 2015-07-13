@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.io;
+package nl.tudelft.graphalytics.giraph.algorithms.stats;
+
+import org.apache.giraph.aggregators.BasicAggregator;
 
 /**
- * Wrapper class for a pair of longs.
+ * Aggregator for DoubleAverage values. Used to aggregate the clustering coefficients
+ * of individual vertices into a graph-wide average value.
  *
  * @author Tim Hegeman
  */
-public class LongPair {
+public class DoubleAverageAggregator extends BasicAggregator<DoubleAverage> {
 
-	private long first;
-	private long second;
-	
-	public LongPair(long first, long second) {
-		this.first = first;
-		this.second = second;
+	@Override
+	public void aggregate(DoubleAverage value) {
+		getAggregatedValue().add(value);
 	}
-	
-	public long getFirst() {
-		return first;
+
+	@Override
+	public DoubleAverage createInitialValue() {
+		return new DoubleAverage();
 	}
-	public long getSecond() {
-		return second;
-	}
-	
+
 }

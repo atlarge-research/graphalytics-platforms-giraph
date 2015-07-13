@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.io;
+package nl.tudelft.graphalytics.giraph.algorithms.stats;
+
+import org.apache.giraph.master.DefaultMasterCompute;
 
 /**
- * Wrapper class for a pair of longs.
+ * Master computation for the local clustering coefficient algorithm, which
+ * registers the DoubleAverage aggregator to yield a graph-wide average LCC.
  *
  * @author Tim Hegeman
  */
-public class LongPair {
+public class LocalClusteringCoefficientMasterComputation extends DefaultMasterCompute {
 
-	private long first;
-	private long second;
+	public static final String LCC_AGGREGATOR_NAME = "Average LCC";
 	
-	public LongPair(long first, long second) {
-		this.first = first;
-		this.second = second;
+	@Override
+	public void compute() {
 	}
-	
-	public long getFirst() {
-		return first;
+
+	@Override
+	public void initialize() throws InstantiationException,
+			IllegalAccessException {
+		registerPersistentAggregator(LCC_AGGREGATOR_NAME, DoubleAverageAggregator.class);
 	}
-	public long getSecond() {
-		return second;
-	}
-	
+
 }

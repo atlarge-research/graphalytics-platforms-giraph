@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2015 Delft University of Technology
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,11 +36,11 @@ import nl.tudelft.graphalytics.Platform;
 import nl.tudelft.graphalytics.domain.Algorithm;
 import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
 import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
-import nl.tudelft.graphalytics.giraph.bfs.BreadthFirstSearchJob;
-import nl.tudelft.graphalytics.giraph.cd.CommunityDetectionJob;
-import nl.tudelft.graphalytics.giraph.conn.ConnectedComponentsJob;
-import nl.tudelft.graphalytics.giraph.evo.ForestFireModelJob;
-import nl.tudelft.graphalytics.giraph.stats.LocalClusteringCoefficientJob;
+import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
+import nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionJob;
+import nl.tudelft.graphalytics.giraph.algorithms.conn.ConnectedComponentsJob;
+import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelJob;
+import nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientJob;
 
 /**
  * Entry point of the Graphalytics benchmark for Giraph. Provides the platform

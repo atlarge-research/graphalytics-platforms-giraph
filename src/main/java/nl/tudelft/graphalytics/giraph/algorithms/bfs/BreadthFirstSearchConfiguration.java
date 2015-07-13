@@ -13,28 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.io;
+package nl.tudelft.graphalytics.giraph.algorithms.bfs;
+
+import org.apache.giraph.conf.LongConfOption;
 
 /**
- * Wrapper class for a pair of longs.
- *
+ * Configuration constants for breadth-first search on Giraph.
+ * 
  * @author Tim Hegeman
  */
-public class LongPair {
+public final class BreadthFirstSearchConfiguration {
+	
+	/** Configuration key for the source vertex of the algorithm */
+	public static final String SOURCE_VERTEX_KEY = "graphalytics.bfs.source-vertex";
+	/** Configuration option for the source vertex of the algorithm */
+	public static final LongConfOption SOURCE_VERTEX = new LongConfOption(
+			SOURCE_VERTEX_KEY, -1, "Source vertex for the breadth first search algorithm");
 
-	private long first;
-	private long second;
-	
-	public LongPair(long first, long second) {
-		this.first = first;
-		this.second = second;
-	}
-	
-	public long getFirst() {
-		return first;
-	}
-	public long getSecond() {
-		return second;
+	private BreadthFirstSearchConfiguration() {
 	}
 	
 }

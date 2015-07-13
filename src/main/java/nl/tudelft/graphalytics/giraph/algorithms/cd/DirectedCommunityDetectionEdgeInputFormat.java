@@ -13,36 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.io;
+package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
-import java.io.IOException;
-import java.util.regex.Pattern;
-
+import nl.tudelft.graphalytics.giraph.io.LongPair;
 import org.apache.giraph.io.EdgeReader;
 import org.apache.giraph.io.formats.TextEdgeInputFormat;
+import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
+import java.io.IOException;
+import java.util.regex.Pattern;
+
 /**
- * Input format for edge-based directed graphs. Inspired by IntNullTextEdgeInputFormat
- * provided by Giraph.
+ * Similar to {@link nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat
+ * DirectedLongNullTextEdgeInputFormat}, except that edges have {@link BooleanWritable} values.
  *
  * @author Tim Hegeman
  */
-public class DirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, NullWritable> {
+public class DirectedCommunityDetectionEdgeInputFormat extends TextEdgeInputFormat<LongWritable, BooleanWritable> {
 
 	private static final Pattern SEPARATOR = Pattern.compile("[\t ]");
-	
+
 	@Override
-	public EdgeReader<LongWritable, NullWritable> createEdgeReader(
+	public EdgeReader<LongWritable, BooleanWritable> createEdgeReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
-		return new LongNullEdgeReader();
+		return new LongBooleanEdgeReader();
 	}
-	
-	private class LongNullEdgeReader extends TextEdgeReaderFromEachLineProcessed<LongPair> {
+
+	private class LongBooleanEdgeReader extends TextEdgeReaderFromEachLineProcessed<LongPair> {
 
 		@Override
 		protected LongPair preprocessLine(Text line) throws IOException {
@@ -65,8 +66,8 @@ public class DirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<Lon
 		}
 
 		@Override
-		protected NullWritable getValue(LongPair line) throws IOException {
-			return NullWritable.get();
+		protected BooleanWritable getValue(LongPair line) throws IOException {
+			return new BooleanWritable(false);
 		}
 
 	}
