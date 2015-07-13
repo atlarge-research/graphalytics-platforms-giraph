@@ -16,14 +16,14 @@
 package nl.tudelft.graphalytics.giraph.algorithms.evo;
 
 
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.AVAILABLE_VERTEX_ID;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.NEW_VERTICES;
+import org.apache.giraph.worker.WorkerContext;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.Random;
 
-import org.apache.giraph.worker.WorkerContext;
+import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.AVAILABLE_VERTEX_ID;
+import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.NEW_VERTICES;
 
 /**
  * Per-worker context for the forest fire model algorithm. Used to select
@@ -47,7 +47,7 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 	public synchronized void registerVertex(long vertexId) {
 		if (numberOfNewVertices == 0)
 			return;
-		
+
 		// Consider the given vertex as a potential ambassador by assigning it a random score
 		AmbassadorSelection candidate = new AmbassadorSelection(rnd.nextFloat(), vertexId);
 		if (candidateAmbassadors.size() < numberOfNewVertices) {
@@ -76,7 +76,7 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 		nextVertexId += getWorkerCount();
 		return newId;
 	}
-	
+
 	@Override
 	public void preApplication() throws InstantiationException,
 			IllegalAccessException {
@@ -94,15 +94,15 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 			long numNewVertices = NEW_VERTICES.get(getConf());
 			long verticesPerWorker = numNewVertices / numWorkers;
 			numberOfNewVertices = numNewVertices;
-	
+
 			// Split up the remaining < numWorkers vertices based on worker IDs
 			long remainder = numNewVertices - verticesPerWorker * numWorkers;
 			if (remainder != 0 && getMyWorkerIndex() < remainder)
 				numberOfNewVertices++;
-			
+
 			// Get the first vertex ID to assign to a new vertex
 			nextVertexId = AVAILABLE_VERTEX_ID.get(getConf()) + getMyWorkerIndex();
-			
+
 			initialized = true;
 		}
 	}
@@ -122,20 +122,21 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 
 	/**
 	 * Represents a possible choice for an ambassador, with a vertex ID and a score.
-	 * The selections are ordered by score values. 
+	 * The selections are ordered by score values.
 	 */
 	private static class AmbassadorSelection implements Comparable<AmbassadorSelection> {
 		private float score;
 		private long vertexId;
-		
+
 		public AmbassadorSelection(float score, long vertexId) {
 			this.score = score;
 			this.vertexId = vertexId;
 		}
-		
+
 		public float getScore() {
 			return score;
 		}
+
 		public long getVertexId() {
 			return vertexId;
 		}
@@ -144,7 +145,7 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 		public int compareTo(AmbassadorSelection o) {
 			return Float.compare(getScore(), o.getScore());
 		}
-		
+
 		@Override
 		public boolean equals(Object obj) {
 			return obj instanceof AmbassadorSelection && this.compareTo((AmbassadorSelection) obj) == 0;
@@ -155,5 +156,5 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 			return score != +0.0f ? Float.floatToIntBits(score) : 0;
 		}
 	}
-	
+
 }

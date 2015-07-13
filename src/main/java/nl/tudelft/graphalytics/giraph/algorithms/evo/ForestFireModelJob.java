@@ -15,47 +15,43 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.evo;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.AVAILABLE_VERTEX_ID;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.BACKWARD_PROBABILITY;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.FORWARD_PROBABILITY;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.MAX_ITERATIONS;
-import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.NEW_VERTICES;
-
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.algorithms.ForestFireModelParameters;
+import nl.tudelft.graphalytics.giraph.GiraphJob;
+import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
+import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.io.EdgeInputFormat;
 import org.apache.giraph.io.EdgeOutputFormat;
 import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
-import nl.tudelft.graphalytics.domain.algorithms.ForestFireModelParameters;
-import nl.tudelft.graphalytics.giraph.GiraphJob;
-import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
-import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelConfiguration.*;
 
 /**
  * Job configuration of the forest fire model implementation for Giraph.
- * 
+ *
  * @author Tim Hegeman
  */
 public class ForestFireModelJob extends GiraphJob {
 
 	private ForestFireModelParameters parameters;
 	private GraphFormat graphFormat;
-	
+
 	/**
 	 * Constructs a forest fire model job with a EVOParameters object containing
 	 * graph-specific parameters, and a graph format specification
-	 * 
-	 * @param parameters the graph-specific EVO parameters
+	 *
+	 * @param parameters  the graph-specific EVO parameters
 	 * @param graphFormat the graph format specification
 	 */
 	public ForestFireModelJob(Object parameters, GraphFormat graphFormat) {
 		assert (parameters instanceof ForestFireModelParameters);
-		this.parameters = (ForestFireModelParameters)parameters;
+		this.parameters = (ForestFireModelParameters) parameters;
 		this.graphFormat = graphFormat;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
@@ -63,7 +59,7 @@ public class ForestFireModelJob extends GiraphJob {
 				DirectedForestFireModelComputation.class :
 				UndirectedForestFireModelComputation.class);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
@@ -71,7 +67,7 @@ public class ForestFireModelJob extends GiraphJob {
 				ForestFireModelVertexInputFormat.class :
 				null;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexOutputFormat> getVertexOutputFormatClass() {
@@ -83,8 +79,8 @@ public class ForestFireModelJob extends GiraphJob {
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
 		return graphFormat.isEdgeBased() ?
 				(graphFormat.isDirected() ?
-					DirectedLongNullTextEdgeInputFormat.class :
-					UndirectedLongNullTextEdgeInputFormat.class) :
+						DirectedLongNullTextEdgeInputFormat.class :
+						UndirectedLongNullTextEdgeInputFormat.class) :
 				null;
 	}
 
@@ -101,8 +97,8 @@ public class ForestFireModelJob extends GiraphJob {
 		MAX_ITERATIONS.set(config, parameters.getMaxIterations());
 		FORWARD_PROBABILITY.set(config, parameters.getPRatio());
 		BACKWARD_PROBABILITY.set(config, parameters.getRRatio());
-		
+
 		config.setWorkerContextClass(ForestFireModelWorkerContext.class);
 	}
-	
+
 }

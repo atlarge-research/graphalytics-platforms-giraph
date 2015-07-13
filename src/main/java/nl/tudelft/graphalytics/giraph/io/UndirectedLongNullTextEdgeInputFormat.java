@@ -15,18 +15,17 @@
  */
 package nl.tudelft.graphalytics.giraph.io;
 
-import java.io.IOException;
-import java.util.regex.Pattern;
-
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
 import org.apache.giraph.io.EdgeReader;
 import org.apache.giraph.io.formats.TextEdgeInputFormat;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * Input format for edge-based directed graphs. Inspired by IntNullTextEdgeInputFormat
@@ -37,18 +36,18 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 public class UndirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, NullWritable> {
 
 	private static final Pattern SEPARATOR = Pattern.compile("[\t ]");
-	
+
 	@Override
 	public EdgeReader<LongWritable, NullWritable> createEdgeReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
 		return new LongNullEdgeReader();
 	}
-	
+
 	private class LongNullEdgeReader extends TextEdgeReader {
 
 		private boolean outputBackwards = true;
 		private long first;
-		private long second;		
+		private long second;
 
 		@Override
 		public boolean nextEdge() throws IOException, InterruptedException {

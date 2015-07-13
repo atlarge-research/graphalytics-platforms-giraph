@@ -15,6 +15,8 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.evo;
 
+import org.apache.hadoop.io.Writable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -22,8 +24,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.hadoop.io.Writable;
 
 /**
  * Vertex data for the forest fire model algorithm. Include a list of incoming edges
@@ -39,16 +39,18 @@ public class ForestFireModelData implements Writable {
 		BURNING,
 		BURNED
 	}
-	
+
 	private long[] inEdges;
 	private Map<Long, ForestFireModelState> statePerInstigator;
-	
-	/** Required for instantiation using the Writable interface. Do not use. */
+
+	/**
+	 * Required for instantiation using the Writable interface. Do not use.
+	 */
 	public ForestFireModelData() {
 		inEdges = new long[0];
 		statePerInstigator = new HashMap<>();
 	}
-	
+
 	private ForestFireModelData(long[] inEdges) {
 		this.inEdges = inEdges;
 		this.statePerInstigator = new HashMap<>();
@@ -77,6 +79,7 @@ public class ForestFireModelData implements Writable {
 			return statePerInstigator.get(instigatorId);
 		return ForestFireModelState.ALIVE;
 	}
+
 	/**
 	 * @return the set of instigators with a known state in this node
 	 */
@@ -86,12 +89,12 @@ public class ForestFireModelData implements Writable {
 
 	/**
 	 * @param instigatorId an instigator whose state to change at this node
-	 * @param newState the new state for the instigator
+	 * @param newState     the new state for the instigator
 	 */
 	public void setState(long instigatorId, ForestFireModelState newState) {
 		statePerInstigator.put(instigatorId, newState);
 	}
-	
+
 	@Override
 	public void write(DataOutput out) throws IOException {
 		// Store the incoming edges of this vertex
@@ -136,5 +139,5 @@ public class ForestFireModelData implements Writable {
 			inEdgeArray[i++] = inEdge;
 		return new ForestFireModelData(inEdgeArray);
 	}
-	
+
 }

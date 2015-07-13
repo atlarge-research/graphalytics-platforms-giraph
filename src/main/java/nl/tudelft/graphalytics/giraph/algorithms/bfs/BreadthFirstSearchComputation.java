@@ -15,26 +15,30 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.bfs;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
-
-import java.io.IOException;
-
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 
+import java.io.IOException;
+
+import static nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
+
 /**
  * Implementation of a simple BFS (SSSP) on an unweighted, directed graph.
- * 
+ *
  * @author Tim Hegeman
  */
 public class BreadthFirstSearchComputation extends BasicComputation<LongWritable, LongWritable, NullWritable, LongWritable> {
 
-	/** Constant vertex value representing an unvisited vertex */ 
+	/**
+	 * Constant vertex value representing an unvisited vertex
+	 */
 	private static final long UNVISITED = Long.MAX_VALUE;
-	/** Source vertex ID read at the start of the algorithm execution */
+	/**
+	 * Source vertex ID read at the start of the algorithm execution
+	 */
 	private long sourceVertexId = -1L;
 
 	@Override
@@ -47,7 +51,7 @@ public class BreadthFirstSearchComputation extends BasicComputation<LongWritable
 	public void compute(Vertex<LongWritable, LongWritable, NullWritable> vertex,
 			Iterable<LongWritable> messages) throws IOException {
 		long bfsDepth = getSuperstep();
-		
+
 		if (getSuperstep() == 0) {
 			// During the first superstep only the source vertex should be active
 			if (vertex.getId().get() == sourceVertexId) {
@@ -63,7 +67,7 @@ public class BreadthFirstSearchComputation extends BasicComputation<LongWritable
 				sendMessageToAllEdges(vertex, vertex.getValue());
 			}
 		}
-		
+
 		// Always halt so the compute method is only executed for those vertices
 		// that have an incoming message
 		vertex.voteToHalt();

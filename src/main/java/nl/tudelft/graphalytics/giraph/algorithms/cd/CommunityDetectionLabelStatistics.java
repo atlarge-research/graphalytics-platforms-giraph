@@ -16,83 +16,81 @@
 package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
 /**
- *
- *
  * @author Wing Ngai
  * @author Tim Hegeman
  */
 public class CommunityDetectionLabelStatistics {
-    long label;
-    float aggScore;
-    float maxScore;
+	long label;
+	float aggScore;
+	float maxScore;
 
-    public CommunityDetectionLabelStatistics(long label) {
-        this(label, 0.0f, Float.MIN_VALUE);
-    }
+	public CommunityDetectionLabelStatistics(long label) {
+		this(label, 0.0f, Float.MIN_VALUE);
+	}
 
-    public CommunityDetectionLabelStatistics(long label, float aggScore, float maxScore) {
-        this.label = label;
-        this.aggScore = aggScore;
-        this.maxScore = maxScore;
-    }
+	public CommunityDetectionLabelStatistics(long label, float aggScore, float maxScore) {
+		this.label = label;
+		this.aggScore = aggScore;
+		this.maxScore = maxScore;
+	}
 
-    public long getLabel() {
-        return label;
-    }
+	public long getLabel() {
+		return label;
+	}
 
-    public void setLabel(long label) {
-        this.label = label;
-    }
+	public void setLabel(long label) {
+		this.label = label;
+	}
 
-    public float getAggScore() {
-        return aggScore;
-    }
+	public float getAggScore() {
+		return aggScore;
+	}
 
-    public void setAggScore(float aggScore) {
-        this.aggScore = aggScore;
-    }
+	public void setAggScore(float aggScore) {
+		this.aggScore = aggScore;
+	}
 
-    public float getMaxScore() {
-        return maxScore;
-    }
+	public float getMaxScore() {
+		return maxScore;
+	}
 
-    public void setMaxScore(float maxScore) {
-        this.maxScore = maxScore;
-    }
+	public void setMaxScore(float maxScore) {
+		this.maxScore = maxScore;
+	}
 
-    public void addLabel(CommunityDetectionLabel other, double nodePreference) {
-        if (other.getLabel() != label)
-            return;
-        aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference);
-        if (other.getLabelScore() > maxScore) {
-            maxScore = other.getLabelScore();
-        }
-    }
+	public void addLabel(CommunityDetectionLabel other, double nodePreference) {
+		if (other.getLabel() != label)
+			return;
+		aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference);
+		if (other.getLabelScore() > maxScore) {
+			maxScore = other.getLabelScore();
+		}
+	}
 
-    public void addLabel(CommunityDetectionLabel other, double nodePreference, double scaleFactor) {
-        if (other.getLabel() != label)
-            return;
-        aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference) * scaleFactor;
-        if (other.getLabelScore() > maxScore) {
-            maxScore = other.getLabelScore();
-        }
-    }
+	public void addLabel(CommunityDetectionLabel other, double nodePreference, double scaleFactor) {
+		if (other.getLabel() != label)
+			return;
+		aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference) * scaleFactor;
+		if (other.getLabelScore() > maxScore) {
+			maxScore = other.getLabelScore();
+		}
+	}
 
-    public void addStatistics(CommunityDetectionLabelStatistics other) {
-        if (other.label != label)
-            return;
-        aggScore += other.aggScore;
-        if (other.maxScore > maxScore) {
-            maxScore = other.maxScore;
-        }
-    }
+	public void addStatistics(CommunityDetectionLabelStatistics other) {
+		if (other.label != label)
+			return;
+		aggScore += other.aggScore;
+		if (other.maxScore > maxScore) {
+			maxScore = other.maxScore;
+		}
+	}
 
-    @Override
-    public String toString() {
-        return "CommunityDetectionLabelStatistics{" +
-                "label='" + label + '\'' +
-                ", aggScore=" + aggScore +
-                ", maxScore=" + maxScore +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "CommunityDetectionLabelStatistics{" +
+				"label='" + label + '\'' +
+				", aggScore=" + aggScore +
+				", maxScore=" + maxScore +
+				'}';
+	}
 }
