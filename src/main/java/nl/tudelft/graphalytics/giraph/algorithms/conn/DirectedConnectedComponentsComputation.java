@@ -18,6 +18,8 @@
 
 package nl.tudelft.graphalytics.giraph.algorithms.conn;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
 import org.apache.giraph.graph.BasicComputation;
@@ -26,8 +28,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Directed Connected Component algorithm.
@@ -41,8 +41,7 @@ import java.util.Set;
  * @author Tim Hegeman
  */
 public class DirectedConnectedComponentsComputation extends BasicComputation<LongWritable, LongWritable, NullWritable, LongWritable> {
-
-	private Set<LongWritable> edgeSet = new HashSet<>();
+	private LongSet edgeSet = new LongOpenHashSet();
 
 	/**
 	 * Propagates the smallest vertex id to all neighbors. Will always choose to
@@ -58,10 +57,10 @@ public class DirectedConnectedComponentsComputation extends BasicComputation<Lon
 			// For every incoming edge that does not have a corresponding outgoing edge, create one
 			edgeSet.clear();
 			for (Edge<LongWritable, NullWritable> existingEdge : vertex.getEdges()) {
-				edgeSet.add(existingEdge.getTargetVertexId());
+				edgeSet.add(existingEdge.getTargetVertexId().get());
 			}
 			for (LongWritable incomingId : messages) {
-				if (!edgeSet.contains(incomingId)) {
+				if (!edgeSet.contains(incomingId.get())) {
 					vertex.addEdge(EdgeFactory.create(incomingId));
 				}
 			}

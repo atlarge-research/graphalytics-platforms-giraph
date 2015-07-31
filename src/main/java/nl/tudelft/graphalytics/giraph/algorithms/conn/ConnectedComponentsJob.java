@@ -52,7 +52,9 @@ public class ConnectedComponentsJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return UndirectedConnectedComponentsComputation.class;
+		return graphFormat.isDirected() ?
+				DirectedConnectedComponentsComputation.class :
+				UndirectedConnectedComponentsComputation.class;
 	}
 
 	@SuppressWarnings("rawtypes")
