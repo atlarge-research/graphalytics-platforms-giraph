@@ -199,6 +199,15 @@ public class GiraphPlatform implements Platform {
 		}
 	}
 
+	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
+			Configuration destination) {
+		org.apache.commons.configuration.Configuration giraphOptions = source.subset("giraph.options");
+		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
+			String option = optionIterator.next();
+			destination.set("giraph." + option, giraphOptions.getString(option));
+		}
+	}
+
 	@Override
 	public void deleteGraph(String graphName) {
 		// TODO: Clean up the graph on HDFS, depending on some configuration.
