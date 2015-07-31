@@ -28,8 +28,6 @@ import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.*;
 
