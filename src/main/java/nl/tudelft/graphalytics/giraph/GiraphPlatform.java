@@ -40,6 +40,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -164,6 +165,8 @@ public class GiraphPlatform implements Platform {
 			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.HEAP_SIZE_MB);
 			transferIfSet(giraphConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
 
+			transferGiraphOptions(giraphConfig, jobConf);
+
 			// Execute the Giraph job
 			result = ToolRunner.run(jobConf, job, new String[0]);
 			// TODO: Clean up intermediate and output data, depending on some configuration.
@@ -184,6 +187,15 @@ public class GiraphPlatform implements Platform {
 		} else {
 			LOG.warn(sourceProperty + " is not configured, defaulting to " +
 					destinationOption.getDefaultValue() + ".");
+		}
+	}
+
+	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
+			Configuration destination) {
+		org.apache.commons.configuration.Configuration giraphOptions = source.subset("giraph.options");
+		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
+			String option = optionIterator.next();
+			destination.set("giraph." + option, giraphOptions.getString(option));
 		}
 	}
 

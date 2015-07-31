@@ -151,7 +151,7 @@ public abstract class GiraphJob extends Configured implements Tool {
 		loadConfiguration();
 
 		// Prepare the job configuration
-		GiraphConfiguration configuration = new GiraphConfiguration();
+		GiraphConfiguration configuration = new GiraphConfiguration(getConf());
 
 		// Set the computation class
 		configuration.setComputationClass(getComputationClass());
