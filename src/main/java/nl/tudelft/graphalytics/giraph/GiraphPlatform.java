@@ -53,6 +53,11 @@ public class GiraphPlatform implements Platform {
 	private static final Logger LOG = LogManager.getLogger();
 
 	/**
+	 * Default file name for the file storing Giraph properties.
+	 */
+	public static final String GIRAPH_PROPERTIES_FILE = "giraph.properties";
+
+	/**
 	 * Property key for setting the number of workers to be used for running Giraph jobs.
 	 */
 	public static final String JOB_WORKERCOUNT = "giraph.job.worker-count";
@@ -73,7 +78,7 @@ public class GiraphPlatform implements Platform {
 	 */
 	public static final String HDFS_DIRECTORY_KEY = "hadoop.hdfs.directory";
 	/**
-	 * Default value for the directory on HDFS in which to store all input and output.
+	 * Property key for the directory on HDFS in which to store all input and output.
 	 */
 	public static final String HDFS_DIRECTORY = "graphalytics";
 
@@ -92,7 +97,7 @@ public class GiraphPlatform implements Platform {
 	private void loadConfiguration() {
 		// Load Giraph-specific configuration
 		try {
-			giraphConfig = new PropertiesConfiguration("giraph.properties");
+			giraphConfig = new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
 		} catch (ConfigurationException e) {
 			// Fall-back to an empty properties file
 			LOG.info("Could not find or load giraph.properties.");
@@ -166,18 +171,20 @@ public class GiraphPlatform implements Platform {
 			throw new PlatformExecutionException("Giraph job failed with exception: ", e);
 		}
 
-		if (result != 0)
+		if (result != 0) {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
+		}
 		return LOG.exit(platformBenchmarkResult);
 	}
 
 	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
 			Configuration destination, IntConfOption destinationOption) throws InvalidConfigurationException {
-		if (source.containsKey(sourceProperty))
+		if (source.containsKey(sourceProperty)) {
 			destinationOption.set(destination, ConfigurationUtil.getInteger(source, sourceProperty));
-		else
+		} else {
 			LOG.warn(sourceProperty + " is not configured, defaulting to " +
 					destinationOption.getDefaultValue() + ".");
+		}
 	}
 
 	@Override
@@ -194,8 +201,8 @@ public class GiraphPlatform implements Platform {
 	public NestedConfiguration getPlatformConfiguration() {
 		try {
 			org.apache.commons.configuration.Configuration configuration =
-					new PropertiesConfiguration("giraph.properties");
-			return NestedConfiguration.fromExternalConfiguration(configuration, "giraph.properties");
+					new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
+			return NestedConfiguration.fromExternalConfiguration(configuration, GIRAPH_PROPERTIES_FILE);
 		} catch (ConfigurationException ex) {
 			return NestedConfiguration.empty();
 		}

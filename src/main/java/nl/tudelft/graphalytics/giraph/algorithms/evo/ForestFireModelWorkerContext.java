@@ -45,8 +45,9 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 	 * @param vertexId a vertex in this worker's partition
 	 */
 	public synchronized void registerVertex(long vertexId) {
-		if (numberOfNewVertices == 0)
+		if (numberOfNewVertices == 0) {
 			return;
+		}
 
 		// Consider the given vertex as a potential ambassador by assigning it a random score
 		AmbassadorSelection candidate = new AmbassadorSelection(rnd.nextFloat(), vertexId);
@@ -80,10 +81,12 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 	@Override
 	public void preApplication() throws InstantiationException,
 			IllegalAccessException {
+		//Pre-application is not required for this worker context.
 	}
 
 	@Override
 	public void postApplication() {
+		//Post-application is not required for this worker context.
 	}
 
 	@Override
@@ -97,8 +100,9 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 
 			// Split up the remaining < numWorkers vertices based on worker IDs
 			long remainder = numNewVertices - verticesPerWorker * numWorkers;
-			if (remainder != 0 && getMyWorkerIndex() < remainder)
+			if (remainder != 0 && getMyWorkerIndex() < remainder) {
 				numberOfNewVertices++;
+			}
 
 			// Get the first vertex ID to assign to a new vertex
 			nextVertexId = AVAILABLE_VERTEX_ID.get(getConf()) + getMyWorkerIndex();

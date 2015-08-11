@@ -83,9 +83,8 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 		if (getSuperstep() == 0) {
 			msgObject.setSourceId(vertex.getId());
 			sendMessageToAllEdges(vertex, msgObject);
-		}
-		// add incoming edges
-		else if (getSuperstep() == 1) {
+			// add incoming edges
+		} else if (getSuperstep() == 1) {
 			// Construct a set of existing edges
 			Set<LongWritable> edges = new HashSet<>();
 			for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {

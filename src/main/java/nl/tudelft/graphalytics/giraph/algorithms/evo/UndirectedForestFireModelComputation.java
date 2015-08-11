@@ -40,7 +40,6 @@ public class UndirectedForestFireModelComputation extends
 
 	private int maxIterations;
 	private float forwardProbability;
-	//	private float backwardProbability;
 	private Random rnd = new Random();
 
 	@Override
@@ -49,7 +48,6 @@ public class UndirectedForestFireModelComputation extends
 		super.setConf(conf);
 		maxIterations = MAX_ITERATIONS.get(getConf());
 		forwardProbability = FORWARD_PROBABILITY.get(getConf());
-//		backwardProbability = BACKWARD_PROBABILITY.get(getConf());
 	}
 
 	@Override
@@ -176,37 +174,41 @@ public class UndirectedForestFireModelComputation extends
 	}
 
 	private static void addToLinksMap(Map<Long, Set<Long>> linksMap, long instigatorId, long sourceId) {
-		if (!linksMap.containsKey(instigatorId))
+		if (!linksMap.containsKey(instigatorId)) {
 			linksMap.put(instigatorId, new HashSet<Long>());
+		}
 		linksMap.get(instigatorId).add(sourceId);
 	}
 
 	private Set<Long> selectLinksFromSet(Set<Long> links, int amount) {
-		if (amount >= links.size())
+		if (amount >= links.size()) {
 			return links;
+		}
 
 		List<Long> linksAsList = new ArrayList<>(links);
 		Set<Long> selection = new HashSet<>();
-		while (amount > 0) {
+		for (int i = 0; i < amount; i++) {
 			int idx = rnd.nextInt(linksAsList.size());
 			selection.add(linksAsList.get(idx));
 			linksAsList.remove(idx);
-			amount--;
 		}
 		return selection;
 	}
 
 	private int getGeometricVariable(float p) {
-		if (p == 1.0f)
+		if (p == 1.0f) {
 			return 0;
+		}
 		return (int) (Math.log(rnd.nextFloat()) / Math.log(1 - p));
 	}
 
 	private void burnOut(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {
 		// Loop through the list of states and replacing burning with burned
-		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates())
-			if (state.getValue() == ForestFireModelState.BURNING)
+		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates()) {
+			if (state.getValue() == ForestFireModelState.BURNING) {
 				vertex.getValue().setState(state.getKey(), ForestFireModelState.BURNED);
+			}
+		}
 	}
 
 }

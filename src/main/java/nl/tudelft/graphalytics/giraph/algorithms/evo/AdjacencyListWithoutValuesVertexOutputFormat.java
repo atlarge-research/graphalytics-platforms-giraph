@@ -44,7 +44,7 @@ public class AdjacencyListWithoutValuesVertexOutputFormat extends TextVertexOutp
 		@Override
 		protected Text convertVertexToLine(Vertex<LongWritable, Writable, Writable> vertex)
 				throws IOException {
-			StringBuffer sb = new StringBuffer(vertex.getId().toString());
+			StringBuilder sb = new StringBuilder(vertex.getId().toString());
 			for (Edge<LongWritable, Writable> edge : vertex.getEdges()) {
 				sb.append(' ').append(edge.getTargetVertexId());
 			}

@@ -62,10 +62,11 @@ public class DoubleAverage implements Writable {
 	 * @return the average value of all added values
 	 */
 	public double get() {
-		if (count == 0)
+		if (count == 0) {
 			return 0.0;
-		else
+		} else {
 			return sum / count;
+		}
 	}
 
 	@Override

@@ -1,3 +1,10 @@
 /target
 /target
 /target
+
+
+# Intellij
+*.iml
+*.ipr
+*.iws
+.idea/

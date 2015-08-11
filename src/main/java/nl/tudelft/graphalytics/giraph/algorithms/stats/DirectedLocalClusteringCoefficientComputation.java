@@ -70,17 +70,20 @@ public class DirectedLocalClusteringCoefficientComputation extends
 		neighbours.clear();
 
 		// Add all outgoing edges to the neighbours set
-		for (Edge<LongWritable, NullWritable> edge : vertex.getEdges())
+		for (Edge<LongWritable, NullWritable> edge : vertex.getEdges()) {
 			neighbours.add(edge.getTargetVertexId().get());
+		}
 		// Add all incoming edges to the neighbours set
-		for (LocalClusteringCoefficientMessage msg : messages)
+		for (LocalClusteringCoefficientMessage msg : messages) {
 			neighbours.add(msg.getSource());
+		}
 	}
 
 	private void sendConnectionInquiries(long sourceVertexId) {
 		// No messages to be sent if there is at most one neighbour
-		if (neighbours.size() <= 1)
+		if (neighbours.size() <= 1) {
 			return;
+		}
 
 		// Send the set of neighbours to all neighbours
 		msgObject.setSource(sourceVertexId);
@@ -93,8 +96,9 @@ public class DirectedLocalClusteringCoefficientComputation extends
 			Iterable<LocalClusteringCoefficientMessage> inquiries) {
 		// Construct a lookup set for the list of edges
 		neighbours.clear();
-		for (Edge<LongWritable, NullWritable> edge : edges)
+		for (Edge<LongWritable, NullWritable> edge : edges) {
 			neighbours.add(edge.getTargetVertexId().get());
+		}
 		// Loop through the inquiries, count the number of existing edges, and send replies
 		for (LocalClusteringCoefficientMessage msg : inquiries) {
 			int matchCount = 0;
@@ -112,8 +116,9 @@ public class DirectedLocalClusteringCoefficientComputation extends
 
 	private static double computeLCC(double numberOfNeighbours, Iterable<LocalClusteringCoefficientMessage> messages) {
 		// Any vertex with less than two neighbours can have no edges between neighbours; LCC = 0
-		if (numberOfNeighbours < 2)
+		if (numberOfNeighbours < 2) {
 			return 0.0;
+		}
 
 		// Count the number of (positive) replies
 		long numberOfMatches = 0;
