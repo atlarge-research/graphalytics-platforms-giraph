@@ -101,6 +101,7 @@ public class ForestFireModelMessage implements Writable {
 			case BURNING_NOTIFICATION:
 				out.writeLong(instigatorId);
 				break;
+			default: throw new IllegalArgumentException();
 		}
 	}
 
@@ -119,6 +120,7 @@ public class ForestFireModelMessage implements Writable {
 			case BURNING_NOTIFICATION:
 				instigatorId = in.readLong();
 				break;
+			default: throw new IllegalArgumentException();
 		}
 	}
 

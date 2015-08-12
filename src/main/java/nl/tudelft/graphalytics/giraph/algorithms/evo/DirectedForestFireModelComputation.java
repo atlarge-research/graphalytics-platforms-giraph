@@ -161,18 +161,20 @@ public class DirectedForestFireModelComputation extends
 			Iterable<ForestFireModelMessage> messages) throws IOException {
 		// Create a fast lookup for incoming node IDs
 		Set<Long> inLinks = new HashSet<>();
-		for (long in : vertex.getValue().getInEdges())
+		for (long in : vertex.getValue().getInEdges()) {
 			inLinks.add(in);
+		}
 		// Group all incoming liveness messages by instigator ID and by incoming/outgoing link
 		Map<Long, Set<Long>> aliveInLinks = new HashMap<>();
 		Map<Long, Set<Long>> aliveOutLinks = new HashMap<>();
 		for (ForestFireModelMessage message : messages) {
 			long instigatorId = message.getInstigatorId();
 			long sourceId = message.getSourceId();
-			if (inLinks.contains(sourceId))
+			if (inLinks.contains(sourceId)) {
 				addToLinksMap(aliveInLinks, instigatorId, sourceId);
-			else
+			} else {
 				addToLinksMap(aliveOutLinks, instigatorId, sourceId);
+			}
 		}
 		// Go through the set of possible instigator IDs (current burning states) and process them
 		for (long instigatorId : vertex.getValue().getInstigatorIds()) {
@@ -204,14 +206,16 @@ public class DirectedForestFireModelComputation extends
 	}
 
 	private static void addToLinksMap(Map<Long, Set<Long>> linksMap, long instigatorId, long sourceId) {
-		if (!linksMap.containsKey(instigatorId))
+		if (!linksMap.containsKey(instigatorId)) {
 			linksMap.put(instigatorId, new HashSet<Long>());
+		}
 		linksMap.get(instigatorId).add(sourceId);
 	}
 
 	private Set<Long> selectLinksFromSet(Set<Long> links, int amount) {
-		if (amount >= links.size())
+		if (amount >= links.size()) {
 			return links;
+		}
 
 		List<Long> linksAsList = new ArrayList<>(links);
 		Set<Long> selection = new HashSet<>();
@@ -225,16 +229,19 @@ public class DirectedForestFireModelComputation extends
 	}
 
 	private int getGeometricVariable(float p) {
-		if (p == 1.0f)
+		if (p == 1.0f) {
 			return 0;
+		}
 		return (int) (Math.log(rnd.nextFloat()) / Math.log(1 - p));
 	}
 
 	private void burnOut(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {
 		// Loop through the list of states and replacing burning with burned
-		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates())
-			if (state.getValue() == ForestFireModelState.BURNING)
+		for (Map.Entry<Long, ForestFireModelState> state : vertex.getValue().getStates()) {
+			if (state.getValue() == ForestFireModelState.BURNING) {
 				vertex.getValue().setState(state.getKey(), ForestFireModelState.BURNED);
+			}
+		}
 	}
 
 }

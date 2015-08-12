@@ -75,8 +75,9 @@ public class ForestFireModelData implements Writable {
 	 * @return the state of this node for the given instigator
 	 */
 	public ForestFireModelState getState(long instigatorId) {
-		if (statePerInstigator.containsKey(instigatorId))
+		if (statePerInstigator.containsKey(instigatorId)) {
 			return statePerInstigator.get(instigatorId);
+		}
 		return ForestFireModelState.ALIVE;
 	}
 
@@ -135,8 +136,9 @@ public class ForestFireModelData implements Writable {
 	public static ForestFireModelData fromInEdges(Collection<Long> inEdges) {
 		long[] inEdgeArray = new long[inEdges.size()];
 		int i = 0;
-		for (Long inEdge : inEdges)
+		for (Long inEdge : inEdges) {
 			inEdgeArray[i++] = inEdge;
+		}
 		return new ForestFireModelData(inEdgeArray);
 	}
 

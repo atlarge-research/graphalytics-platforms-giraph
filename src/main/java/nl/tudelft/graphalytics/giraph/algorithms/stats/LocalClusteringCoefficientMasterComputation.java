@@ -29,6 +29,7 @@ public class LocalClusteringCoefficientMasterComputation extends DefaultMasterCo
 
 	@Override
 	public void compute() {
+		//Computation is not required for this master compute.
 	}
 
 	@Override

@@ -52,7 +52,7 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 		 * Cached vertex id for the current line
 		 */
 		private LongWritable id;
-		private final CommunityDetectionLabel DEFAULT_VALUE = new CommunityDetectionLabel();
+		private final CommunityDetectionLabel defaultLabel = new CommunityDetectionLabel();
 
 		@Override
 		protected String[] preprocessLine(Text line) throws IOException {
@@ -68,7 +68,7 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 
 		@Override
 		protected CommunityDetectionLabel getValue(String[] tokens) throws IOException {
-			return DEFAULT_VALUE;
+			return defaultLabel;
 		}
 
 		@Override

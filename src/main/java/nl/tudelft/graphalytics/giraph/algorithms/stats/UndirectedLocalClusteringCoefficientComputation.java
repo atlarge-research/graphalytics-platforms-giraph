@@ -65,14 +65,16 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 		neighbours.clear();
 
 		// Add all edges to the neighbours set
-		for (Edge<LongWritable, NullWritable> edge : edges)
+		for (Edge<LongWritable, NullWritable> edge : edges) {
 			neighbours.add(edge.getTargetVertexId().get());
+		}
 	}
 
 	private void sendConnectionInquiries(long sourceVertexId) {
 		// No messages to be sent if there is at most one neighbour
-		if (neighbours.size() <= 1)
+		if (neighbours.size() <= 1) {
 			return;
+		}
 
 		// Send out inquiries in an all-pair fashion
 		msgObject.setSource(sourceVertexId);
@@ -102,8 +104,9 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 
 	private static double computeLCC(long numberOfNeighbours, Iterable<LocalClusteringCoefficientMessage> messages) {
 		// Any vertex with less than two neighbours can have no edges between neighbours; LCC = 0
-		if (numberOfNeighbours < 2)
+		if (numberOfNeighbours < 2) {
 			return 0.0;
+		}
 
 		// Count the number of (positive) replies
 		long numberOfMatches = 0;

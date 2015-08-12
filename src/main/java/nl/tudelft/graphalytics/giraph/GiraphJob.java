@@ -117,12 +117,15 @@ public abstract class GiraphJob extends Configured implements Tool {
 	}
 
 	private void loadConfiguration() {
-		if (INPUT_PATH.isDefaultValue(getConf()))
+		if (INPUT_PATH.isDefaultValue(getConf())) {
 			throw new IllegalStateException("Missing mandatory configuration: " + INPUT_PATH_KEY);
-		if (OUTPUT_PATH.isDefaultValue(getConf()))
+		}
+		if (OUTPUT_PATH.isDefaultValue(getConf())) {
 			throw new IllegalStateException("Missing mandatory configuration: " + OUTPUT_PATH_KEY);
-		if (ZOOKEEPER_ADDRESS.isDefaultValue(getConf()))
+		}
+		if (ZOOKEEPER_ADDRESS.isDefaultValue(getConf())) {
 			throw new IllegalStateException("Missing mandatory configuration: " + ZOOKEEPER_ADDRESS_KEY);
+		}
 
 		workerCount = WORKER_COUNT.get(getConf());
 		heapSize = HEAP_SIZE_MB.get(getConf());

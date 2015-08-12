@@ -59,8 +59,9 @@ public class CommunityDetectionLabelStatistics {
 	}
 
 	public void addLabel(CommunityDetectionLabel other, double nodePreference) {
-		if (other.getLabel() != label)
+		if (other.getLabel() != label) {
 			return;
+		}
 		aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference);
 		if (other.getLabelScore() > maxScore) {
 			maxScore = other.getLabelScore();
@@ -68,8 +69,9 @@ public class CommunityDetectionLabelStatistics {
 	}
 
 	public void addLabel(CommunityDetectionLabel other, double nodePreference, double scaleFactor) {
-		if (other.getLabel() != label)
+		if (other.getLabel() != label) {
 			return;
+		}
 		aggScore += other.getLabelScore() * Math.pow(other.getNumberOfNeighbours(), nodePreference) * scaleFactor;
 		if (other.getLabelScore() > maxScore) {
 			maxScore = other.getLabelScore();
@@ -77,8 +79,9 @@ public class CommunityDetectionLabelStatistics {
 	}
 
 	public void addStatistics(CommunityDetectionLabelStatistics other) {
-		if (other.label != label)
+		if (other.label != label) {
 			return;
+		}
 		aggScore += other.aggScore;
 		if (other.maxScore > maxScore) {
 			maxScore = other.maxScore;

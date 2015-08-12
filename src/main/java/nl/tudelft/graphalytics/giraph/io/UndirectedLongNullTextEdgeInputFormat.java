@@ -56,8 +56,9 @@ public class UndirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<L
 				return true;
 			}
 
-			if (!getRecordReader().nextKeyValue())
+			if (!getRecordReader().nextKeyValue()) {
 				return false;
+			}
 
 			String[] tokens = SEPARATOR.split(getRecordReader().getCurrentValue().toString());
 			first = Long.parseLong(tokens[0]);
