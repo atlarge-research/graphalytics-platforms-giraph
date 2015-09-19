@@ -57,8 +57,6 @@ public class BreadthFirstSearchComputation extends BasicComputation<LongWritable
 			if (vertex.getId().get() == sourceVertexId) {
 				vertex.getValue().set(bfsDepth);
 				sendMessageToAllEdges(vertex, vertex.getValue());
-			} else {
-				vertex.getValue().set(UNVISITED);
 			}
 		} else {
 			// If this vertex was not yet visited, set the vertex depth and propagate to neighbours

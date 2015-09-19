@@ -157,13 +157,10 @@ public abstract class GiraphJob extends Configured implements Tool {
 		configuration.setComputationClass(getComputationClass());
 
 		// Set the input path and class
-		if (getVertexInputFormatClass() != null) {
-			configuration.setVertexInputFormatClass(getVertexInputFormatClass());
-			GiraphFileInputFormat.addVertexInputPath(configuration, new Path(inputPath));
-		} else {
-			configuration.setEdgeInputFormatClass(getEdgeInputFormatClass());
-			GiraphFileInputFormat.addEdgeInputPath(configuration, new Path(inputPath));
-		}
+		configuration.setVertexInputFormatClass(getVertexInputFormatClass());
+		GiraphFileInputFormat.addVertexInputPath(configuration, new Path(inputPath + ".v"));
+		configuration.setEdgeInputFormatClass(getEdgeInputFormatClass());
+		GiraphFileInputFormat.addEdgeInputPath(configuration, new Path(inputPath + ".e"));
 
 		// Set and output path and class
 		configuration.set(FileOutputFormat.OUTDIR, outputPath);
@@ -186,7 +183,8 @@ public abstract class GiraphJob extends Configured implements Tool {
 		org.apache.giraph.job.GiraphJob job = new org.apache.giraph.job.GiraphJob(
 				configuration, "Graphalytics: " + getClass().getSimpleName());
 		// Launch it
-		return LOG.exit(job.run(false) ? 0 : -1);
+		LOG.debug("- Starting Giraph job");
+		return job.run(false) ? 0 : -1;
 	}
 
 	/**
