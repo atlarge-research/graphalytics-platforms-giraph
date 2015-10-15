@@ -178,6 +178,7 @@ public abstract class GiraphJob extends Configured implements Tool {
 		configuration.setZooKeeperConfiguration(zooKeeperAddress);
 		configuration.setInt("mapreduce.map.memory.mb", workerMemory);
 		configuration.set("mapreduce.map.java.opts", "-Xmx" + heapSize + "M");
+        configuration.set("mapred.job.tracker", "notlocal");
 
 		// Set algorithm-specific configuration
 		configure(configuration);

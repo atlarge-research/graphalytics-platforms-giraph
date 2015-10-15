@@ -32,6 +32,16 @@ fi
 echo "Using HADOOP_HOME=$hadoophome"
 export HADOOP_HOME=$hadoophome
 
+#Get granula configuration
+granulaEnabled=$(grep -E "^benchmark.run.granula.enabled[	 ]*[:=]" $config/granula.properties | sed 's/benchmark.run.granula.enabled[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1);
+if [ "$granulaEnabled" = true ] ; then
+    echo 'Granula is enabled.'
+else
+    echo 'Granula is not enabled.'
+fi
+
+
+
 # Construct the classpath
 platform_classpath="$($HADOOP_HOME/bin/hadoop classpath)"
 export platform_classpath=$platform_classpath
