@@ -27,6 +27,7 @@ import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
 import nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionJob;
 import nl.tudelft.graphalytics.giraph.algorithms.conn.ConnectedComponentsJob;
 import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelJob;
+import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
 import nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientJob;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -149,6 +150,9 @@ public class GiraphPlatform implements Platform {
 					break;
 				case STATS:
 					job = new LocalClusteringCoefficientJob(graph.getGraphFormat());
+					break;
+				case PAGERANK:
+					job = new PageRankJob(parameters, graph.getGraphFormat());
 					break;
 				default:
 					throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
