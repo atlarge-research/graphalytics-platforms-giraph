@@ -60,11 +60,9 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return !graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedLocalClusteringCoefficientVertexInputFormat.class :
-						UndirectedLocalClusteringCoefficientVertexInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedLocalClusteringCoefficientVertexInputFormat.class :
+				UndirectedLocalClusteringCoefficientVertexInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -76,11 +74,9 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedLongNullTextEdgeInputFormat.class :
-						UndirectedLongNullTextEdgeInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedLongNullTextEdgeInputFormat.class :
+				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")

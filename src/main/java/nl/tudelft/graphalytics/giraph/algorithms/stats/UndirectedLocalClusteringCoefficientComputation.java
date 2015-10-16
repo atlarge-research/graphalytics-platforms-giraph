@@ -114,6 +114,6 @@ public class UndirectedLocalClusteringCoefficientComputation extends
 			numberOfMatches += msg.getMatchCount();
 		}
 		// Compute the LCC as the ratio between the number of existing edges and number of possible edges
-		return (double) numberOfMatches / numberOfNeighbours / (numberOfNeighbours - 1);
+		return (double)numberOfMatches / numberOfNeighbours / (numberOfNeighbours - 1);
 	}
 }
