@@ -50,7 +50,7 @@ public class CommunityDetectionJob extends GiraphJob {
 	 */
 	public CommunityDetectionJob(Object parameters, GraphFormat graphFormat) {
 		assert parameters instanceof CommunityDetectionParameters;
-		this.parameters = (CommunityDetectionParameters) parameters;
+		this.parameters = (CommunityDetectionParameters)parameters;
 		this.graphFormat = graphFormat;
 	}
 
@@ -65,11 +65,9 @@ public class CommunityDetectionJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return !graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						CommunityDetectionVertexInputFormat.Directed.class :
-						CommunityDetectionVertexInputFormat.Undirected.class) :
-				null;
+		return graphFormat.isDirected() ?
+				CommunityDetectionVertexInputFormat.Directed.class :
+				CommunityDetectionVertexInputFormat.Undirected.class;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -81,11 +79,9 @@ public class CommunityDetectionJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedCommunityDetectionEdgeInputFormat.class :
-						UndirectedLongNullTextEdgeInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedCommunityDetectionEdgeInputFormat.class :
+				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")

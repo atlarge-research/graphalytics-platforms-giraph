@@ -21,6 +21,7 @@ import nl.tudelft.graphalytics.validation.GraphStructure;
 import nl.tudelft.graphalytics.validation.cd.CommunityDetectionOutput;
 import nl.tudelft.graphalytics.validation.cd.CommunityDetectionValidationTest;
 import org.apache.giraph.conf.GiraphConfiguration;
+import org.apache.giraph.edge.HashMapEdges;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.giraph.utils.InternalVertexRunner;
@@ -32,6 +33,8 @@ import org.apache.hadoop.io.Writable;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.apache.giraph.conf.GiraphConstants.VERTEX_EDGES_CLASS;
 
 /**
  * Test cases for validating the Giraph community detection implementation using Graphalytics' validation framework.
@@ -66,6 +69,7 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 			GraphStructure graph, CommunityDetectionParameters parameters) throws Exception {
 		GiraphConfiguration configuration = configurationFromParameters(DirectedCommunityDetectionComputation.class,
 				parameters);
+		VERTEX_EDGES_CLASS.set(configuration, HashMapEdges.class);
 
 		TestGraph<LongWritable, CommunityDetectionLabel, BooleanWritable> inputGraph =
 				GiraphTestGraphLoader.createGraph(configuration, graph, new CommunityDetectionLabel(),

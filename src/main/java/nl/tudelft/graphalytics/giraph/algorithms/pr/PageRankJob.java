@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.algorithms.stats;
+package nl.tudelft.graphalytics.giraph.algorithms.pr;
 
 import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.algorithms.PageRankParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
-import org.apache.giraph.aggregators.TextAggregatorWriter;
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
@@ -29,49 +29,48 @@ import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DAMPING_FACTOR;
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.NUMBER_OF_ITERATIONS;
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 /**
- * The job configuration of the statistics (LCC) implementation for Giraph.
+ * The job configuration of the PageRank implementation for Giraph.
  *
  * @author Tim Hegeman
  */
-public class LocalClusteringCoefficientJob extends GiraphJob {
+public class PageRankJob extends GiraphJob {
 
-	private GraphFormat graphFormat;
+	private final PageRankParameters parameters;
+	private final GraphFormat graphFormat;
 
 	/**
-	 * Constructs a statistics (LCC) job with a graph format specification.
+	 * Constructs a PageRank job with a PageRankParameters object containing graph-specific parameters,
+	 * and a graph format specification
 	 *
+	 * @param parameters  the graph-specific PageRank parameters
 	 * @param graphFormat the graph format specification
 	 */
-	public LocalClusteringCoefficientJob(GraphFormat graphFormat) {
+	public PageRankJob(Object parameters, GraphFormat graphFormat) {
+		assert (parameters instanceof PageRankParameters);
+		this.parameters = (PageRankParameters)parameters;
 		this.graphFormat = graphFormat;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return (graphFormat.isDirected() ?
-				DirectedLocalClusteringCoefficientComputation.class :
-				UndirectedLocalClusteringCoefficientComputation.class);
+		return PageRankComputation.class;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return graphFormat.isDirected() ?
-				DirectedLocalClusteringCoefficientVertexInputFormat.class :
-				UndirectedLocalClusteringCoefficientVertexInputFormat.class;
+		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexOutputFormat> getVertexOutputFormatClass() {
 		return IdWithValueTextOutputFormat.class;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
 		return graphFormat.isDirected() ?
@@ -79,7 +78,6 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeOutputFormat> getEdgeOutputFormatClass() {
 		return null;
@@ -87,12 +85,9 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 
 	@Override
 	protected void configure(GiraphConfiguration config) {
-		// Set the master compute class to handle LCC aggregation
-		config.setMasterComputeClass(LocalClusteringCoefficientMasterComputation.class);
-		config.setAggregatorWriterClass(TextAggregatorWriter.class);
-		config.setInt(TextAggregatorWriter.FREQUENCY, TextAggregatorWriter.AT_THE_END);
-		config.set(TextAggregatorWriter.FILENAME, getOutputPath() + "/aggregators");
-		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts of neighbour sets)
+		DAMPING_FACTOR.set(config, parameters.getDampingFactor());
+		NUMBER_OF_ITERATIONS.set(config, parameters.getNumberOfIterations());
+		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in PageRank)
 		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}
 

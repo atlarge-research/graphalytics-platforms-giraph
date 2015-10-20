@@ -27,6 +27,7 @@ import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
 import nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionJob;
 import nl.tudelft.graphalytics.giraph.algorithms.conn.ConnectedComponentsJob;
 import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelJob;
+import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
 import nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientJob;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -40,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -107,27 +109,27 @@ public class GiraphPlatform implements Platform {
 	}
 
 	@Override
-	public void uploadGraph(Graph graph, String graphFilePath) throws Exception {
-		LOG.entry(graph, graphFilePath);
+	public void uploadGraph(Graph graph) throws Exception {
+		LOG.info("Uploading graph \"{}\" to HDFS", graph.getName());
 
 		String uploadPath = Paths.get(hdfsDirectory, getName(), "input", graph.getName()).toString();
 
 		// Upload the graph to HDFS
 		FileSystem fs = FileSystem.get(new Configuration());
-		fs.copyFromLocalFile(new Path(graphFilePath), new Path(uploadPath));
+		LOG.debug("- Uploading vertex list");
+		fs.copyFromLocalFile(new Path(graph.getVertexFilePath()), new Path(uploadPath + ".v"));
+		LOG.debug("- Uploading edge list");
+		fs.copyFromLocalFile(new Path(graph.getEdgeFilePath()), new Path(uploadPath + ".e"));
 		fs.close();
 
 		// Track available datasets in a map
 		pathsOfGraphs.put(graph.getName(), uploadPath);
-
-		LOG.exit();
 	}
 
 	@Override
-	public PlatformBenchmarkResult executeAlgorithmOnGraph(Algorithm algorithm,
-			Graph graph, Object parameters) throws PlatformExecutionException {
-		LOG.entry(algorithm, graph, parameters);
-		PlatformBenchmarkResult platformBenchmarkResult = new PlatformBenchmarkResult(NestedConfiguration.empty());
+	public PlatformBenchmarkResult executeAlgorithmOnGraph(Algorithm algorithm, Graph graph, Object parameters)
+			throws PlatformExecutionException {
+		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), graph.getName());
 
 		int result;
 		try {
@@ -149,6 +151,9 @@ public class GiraphPlatform implements Platform {
 				case STATS:
 					job = new LocalClusteringCoefficientJob(graph.getGraphFormat());
 					break;
+				case PAGERANK:
+					job = new PageRankJob(parameters, graph.getGraphFormat());
+					break;
 				default:
 					throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
 			}
@@ -164,6 +169,8 @@ public class GiraphPlatform implements Platform {
 			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.HEAP_SIZE_MB);
 			transferIfSet(giraphConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
 
+			transferGiraphOptions(giraphConfig, jobConf);
+
 			// Execute the Giraph job
 			result = ToolRunner.run(jobConf, job, new String[0]);
 			// TODO: Clean up intermediate and output data, depending on some configuration.
@@ -174,7 +181,7 @@ public class GiraphPlatform implements Platform {
 		if (result != 0) {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
-		return LOG.exit(platformBenchmarkResult);
+		return new PlatformBenchmarkResult(NestedConfiguration.empty());
 	}
 
 	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
@@ -184,6 +191,15 @@ public class GiraphPlatform implements Platform {
 		} else {
 			LOG.warn(sourceProperty + " is not configured, defaulting to " +
 					destinationOption.getDefaultValue() + ".");
+		}
+	}
+
+	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
+			Configuration destination) {
+		org.apache.commons.configuration.Configuration giraphOptions = source.subset("giraph.options");
+		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
+			String option = optionIterator.next();
+			destination.set("giraph." + option, giraphOptions.getString(option));
 		}
 	}
 

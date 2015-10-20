@@ -52,15 +52,15 @@ public class ConnectedComponentsJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return UndirectedConnectedComponentsComputation.class;
+		return graphFormat.isDirected() ?
+				DirectedConnectedComponentsComputation.class :
+				UndirectedConnectedComponentsComputation.class;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return !graphFormat.isEdgeBased() ?
-				LongLongNullTextInputFormat.class :
-				null;
+		return LongLongNullTextInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -72,11 +72,9 @@ public class ConnectedComponentsJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedLongNullTextEdgeInputFormat.class :
-						UndirectedLongNullTextEdgeInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedLongNullTextEdgeInputFormat.class :
+				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")

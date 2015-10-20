@@ -28,7 +28,6 @@ import org.apache.giraph.io.EdgeOutputFormat;
 import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
-import org.apache.giraph.io.formats.LongLongNullTextInputFormat;
 
 import static nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
@@ -52,7 +51,7 @@ public class BreadthFirstSearchJob extends GiraphJob {
 	 */
 	public BreadthFirstSearchJob(Object parameters, GraphFormat graphFormat) {
 		assert (parameters instanceof BreadthFirstSearchParameters);
-		this.parameters = (BreadthFirstSearchParameters) parameters;
+		this.parameters = (BreadthFirstSearchParameters)parameters;
 		this.graphFormat = graphFormat;
 	}
 
@@ -65,9 +64,7 @@ public class BreadthFirstSearchJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return !graphFormat.isEdgeBased() ?
-				LongLongNullTextInputFormat.class :
-				null;
+		return BreadthFirstSearchVertexInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -79,11 +76,9 @@ public class BreadthFirstSearchJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedLongNullTextEdgeInputFormat.class :
-						UndirectedLongNullTextEdgeInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedLongNullTextEdgeInputFormat.class :
+				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")

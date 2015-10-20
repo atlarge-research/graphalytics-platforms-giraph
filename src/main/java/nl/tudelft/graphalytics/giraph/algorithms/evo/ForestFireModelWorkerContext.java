@@ -152,7 +152,7 @@ public class ForestFireModelWorkerContext extends WorkerContext {
 
 		@Override
 		public boolean equals(Object obj) {
-			return obj instanceof AmbassadorSelection && this.compareTo((AmbassadorSelection) obj) == 0;
+			return obj instanceof AmbassadorSelection && this.compareTo((AmbassadorSelection)obj) == 0;
 		}
 
 		@Override

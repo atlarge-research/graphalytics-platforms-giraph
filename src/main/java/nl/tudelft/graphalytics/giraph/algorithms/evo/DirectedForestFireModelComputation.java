@@ -70,7 +70,7 @@ public class DirectedForestFireModelComputation extends
 		}
 
 		// Handle the state-based propagation of the forest fire
-		int indexIntoStateLoop = (int) ((superstep - 2) % 3);
+		int indexIntoStateLoop = (int)((superstep - 2) % 3);
 		if (indexIntoStateLoop == 0) {
 			// Process incoming messages ("catching fire")
 			catchFire(vertex, messages);
@@ -232,7 +232,7 @@ public class DirectedForestFireModelComputation extends
 		if (p == 1.0f) {
 			return 0;
 		}
-		return (int) (Math.log(rnd.nextFloat()) / Math.log(1 - p));
+		return (int)(Math.log(rnd.nextFloat()) / Math.log(1 - p));
 	}
 
 	private void burnOut(Vertex<LongWritable, ForestFireModelData, NullWritable> vertex) {

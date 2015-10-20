@@ -48,7 +48,7 @@ public class ForestFireModelJob extends GiraphJob {
 	 */
 	public ForestFireModelJob(Object parameters, GraphFormat graphFormat) {
 		assert (parameters instanceof ForestFireModelParameters);
-		this.parameters = (ForestFireModelParameters) parameters;
+		this.parameters = (ForestFireModelParameters)parameters;
 		this.graphFormat = graphFormat;
 	}
 
@@ -63,9 +63,7 @@ public class ForestFireModelJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return !graphFormat.isEdgeBased() ?
-				ForestFireModelVertexInputFormat.class :
-				null;
+		return ForestFireModelVertexInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -77,11 +75,9 @@ public class ForestFireModelJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isEdgeBased() ?
-				(graphFormat.isDirected() ?
-						DirectedLongNullTextEdgeInputFormat.class :
-						UndirectedLongNullTextEdgeInputFormat.class) :
-				null;
+		return graphFormat.isDirected() ?
+				DirectedLongNullTextEdgeInputFormat.class :
+				UndirectedLongNullTextEdgeInputFormat.class;
 	}
 
 	@SuppressWarnings("rawtypes")

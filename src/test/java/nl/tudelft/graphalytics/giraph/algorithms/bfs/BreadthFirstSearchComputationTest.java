@@ -43,7 +43,7 @@ public class BreadthFirstSearchComputationTest extends BreadthFirstSearchValidat
 		BreadthFirstSearchConfiguration.SOURCE_VERTEX.set(configuration, parameters.getSourceVertex());
 
 		TestGraph<LongWritable, LongWritable, NullWritable> inputGraph =
-				GiraphTestGraphLoader.createGraph(configuration, graph, new LongWritable(-1), NullWritable.get());
+				GiraphTestGraphLoader.createGraph(configuration, graph, new LongWritable(Long.MAX_VALUE), NullWritable.get());
 
 		TestGraph<LongWritable, LongWritable, NullWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);

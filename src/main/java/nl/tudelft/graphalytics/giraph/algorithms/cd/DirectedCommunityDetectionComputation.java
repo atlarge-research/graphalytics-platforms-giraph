@@ -17,6 +17,8 @@ package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
@@ -26,8 +28,6 @@ import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.*;
 
@@ -65,8 +65,10 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 		maxIterations = MAX_ITERATIONS.get(getConf());
 	}
 
-	private static BooleanWritable UNIDIRECTIONAL_EDGE = new BooleanWritable(false);
-	private static BooleanWritable BIDIRECTIONAL_EDGE = new BooleanWritable(true);
+	private static final boolean UNIDIRECTIONAL = false;
+	private static final BooleanWritable UNIDIRECTIONAL_EDGE = new BooleanWritable(UNIDIRECTIONAL);
+	private static final boolean BIDIRECTIONAL = true;
+	private static BooleanWritable BIDIRECTIONAL_EDGE = new BooleanWritable(BIDIRECTIONAL);
 	private CommunityDetectionMessage msgObject = new CommunityDetectionMessage();
 
 	@Override
@@ -86,17 +88,17 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 			// add incoming edges
 		} else if (getSuperstep() == 1) {
 			// Construct a set of existing edges
-			Set<LongWritable> edges = new HashSet<>();
+			LongSet edges = new LongOpenHashSet();
 			for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {
-				edges.add(edge.getTargetVertexId());
+				edges.add(edge.getTargetVertexId().get());
 			}
 			// Read incoming messages and add edges/update edge values where appropriate
 			for (CommunityDetectionMessage message : messages) {
-				if (!edges.contains(message.getSourceId())) {
-					vertex.addEdge(EdgeFactory.create(message.getSourceId(), UNIDIRECTIONAL_EDGE));
-					edges.add(message.getSourceId());
+				if (!edges.contains(message.getSourceId().get())) {
+					vertex.addEdge(EdgeFactory.create(new LongWritable(message.getSourceId().get()), UNIDIRECTIONAL_EDGE));
+					edges.add(message.getSourceId().get());
 				} else {
-					vertex.setEdgeValue(message.getSourceId(), BIDIRECTIONAL_EDGE);
+					vertex.getEdgeValue(message.getSourceId()).set(BIDIRECTIONAL);
 				}
 			}
 			// initialize algorithm, set label as the vertex id, set label score as 1.0
@@ -139,7 +141,7 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 				labelStatistics.put(label, new CommunityDetectionLabelStatistics(label));
 			}
 
-			if (vertex.getEdgeValue(message.getSourceId()).get()) {
+			if (vertex.getEdgeValue(message.getSourceId()).get() == BIDIRECTIONAL) {
 				labelStatistics.get(label).addLabel(message.getLabel(), nodePreference, 2.0f);
 			} else {
 				labelStatistics.get(label).addLabel(message.getLabel(), nodePreference);
@@ -150,7 +152,8 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 		float highestScore = Float.MIN_VALUE;
 		CommunityDetectionLabelStatistics winningLabel = null;
 		for (Long2ObjectMap.Entry<CommunityDetectionLabelStatistics> singleLabel : labelStatistics.long2ObjectEntrySet()) {
-			if (singleLabel.getValue().getAggScore() > highestScore + EPSILON ||
+			if (winningLabel == null ||
+					singleLabel.getValue().getAggScore() > highestScore + EPSILON ||
 					(Math.abs(singleLabel.getValue().getAggScore() - highestScore) <= EPSILON &&
 							singleLabel.getLongKey() > winningLabel.getLabel())) {
 				highestScore = singleLabel.getValue().getAggScore();
@@ -159,11 +162,13 @@ public class DirectedCommunityDetectionComputation extends BasicComputation<Long
 		}
 
 		// Update the label of this vertex
-		if (vertex.getValue().getLabel() == winningLabel.getLabel()) {
-			vertex.getValue().setLabelScore(winningLabel.getMaxScore());
-		} else {
-			vertex.getValue().setLabelScore(winningLabel.getMaxScore() - hopAttenuation);
-			vertex.getValue().setLabel(winningLabel.getLabel());
+		if (winningLabel != null) {
+			if (vertex.getValue().getLabel() == winningLabel.getLabel()) {
+				vertex.getValue().setLabelScore(winningLabel.getMaxScore());
+			} else {
+				vertex.getValue().setLabelScore(winningLabel.getMaxScore() - hopAttenuation);
+				vertex.getValue().setLabel(winningLabel.getLabel());
+			}
 		}
 	}
 

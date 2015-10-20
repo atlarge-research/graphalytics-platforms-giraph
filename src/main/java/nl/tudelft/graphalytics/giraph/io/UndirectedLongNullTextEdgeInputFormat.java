@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  */
 public class UndirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, NullWritable> {
 
-	private static final Pattern SEPARATOR = Pattern.compile("[\t ]");
+	private static final Pattern SEPARATOR = Pattern.compile(" ");
 
 	@Override
 	public EdgeReader<LongWritable, NullWritable> createEdgeReader(
