@@ -63,7 +63,7 @@ public class PageRankJob extends GiraphJob {
 
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return null;
+		return PageRankVertexInputFormat.class;
 	}
 
 	@Override
