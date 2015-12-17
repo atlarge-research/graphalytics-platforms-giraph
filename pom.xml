@@ -23,10 +23,19 @@
 	</scm>
 
 	<dependencies>
+		<!-- Graphalytics dependencies: core + resources, validation -->
 		<dependency>
 			<groupId>nl.tudelft.graphalytics</groupId>
 			<artifactId>graphalytics-core</artifactId>
 			<version>${graphalytics.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>nl.tudelft.graphalytics</groupId>
+			<artifactId>graphalytics-core</artifactId>
+			<version>${graphalytics.version}</version>
+			<type>tar.gz</type>
+			<classifier>resources</classifier>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.graphalytics</groupId>
@@ -35,6 +44,14 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Logging framework -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
+
+		<!-- Giraph dependencies, including Hadoop for launching Giraph jobs -->
 		<dependency>
 			<groupId>org.apache.giraph</groupId>
 			<artifactId>giraph-core</artifactId>
@@ -55,11 +72,6 @@
 			<artifactId>hadoop-client</artifactId>
 			<version>${hadoop.version}</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-1.2-api</artifactId>
-			<version>${log4j.version}</version>
 		</dependency>
 
 		<dependency>
@@ -97,6 +109,11 @@
 				<configuration>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<minimizeJar>false</minimizeJar>
+					<artifactSet>
+						<excludes>
+							<exclude>*:*:*:resources</exclude>
+						</excludes>
+					</artifactSet>
 					<filters>
 						<filter>
 							<artifact>*.*</artifact>
@@ -164,6 +181,30 @@
 						<goals>
 							<goal>check</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Plugin for creating distribution archives -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.5.3</version>
+				<executions>
+					<execution>
+						<id>bin</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/bin.xml</descriptor>
+							</descriptors>
+							<finalName>graphalytics-${graphalytics.version}-giraph-${project.version}</finalName>
+							<tarLongFileMode>posix</tarLongFileMode>
+							<outputDirectory>${project.basedir}</outputDirectory>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
