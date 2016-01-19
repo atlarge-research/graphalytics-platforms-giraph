@@ -163,6 +163,7 @@
 						<exclude>LICENSE</exclude>
 						<exclude>pom.xml</exclude>
 						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/assembly/**</exclude>
 						<exclude>src/main/resources/**</exclude>
 						<exclude>config-template/**</exclude>
 						<exclude>
