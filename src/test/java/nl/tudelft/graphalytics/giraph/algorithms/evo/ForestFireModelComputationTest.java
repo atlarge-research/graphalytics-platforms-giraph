@@ -18,7 +18,7 @@ package nl.tudelft.graphalytics.giraph.algorithms.evo;
 import nl.tudelft.graphalytics.domain.algorithms.ForestFireModelParameters;
 import nl.tudelft.graphalytics.giraph.GiraphTestGraphLoader;
 import nl.tudelft.graphalytics.validation.GraphStructure;
-import nl.tudelft.graphalytics.validation.evo.ForestFireModelValidationTest;
+import nl.tudelft.graphalytics.validation.algorithms.evo.ForestFireModelValidationTest;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.graph.Computation;

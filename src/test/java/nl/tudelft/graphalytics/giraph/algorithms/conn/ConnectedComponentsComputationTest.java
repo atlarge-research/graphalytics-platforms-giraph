@@ -17,8 +17,8 @@ package nl.tudelft.graphalytics.giraph.algorithms.conn;
 
 import nl.tudelft.graphalytics.giraph.GiraphTestGraphLoader;
 import nl.tudelft.graphalytics.validation.GraphStructure;
-import nl.tudelft.graphalytics.validation.conn.ConnectedComponentsOutput;
-import nl.tudelft.graphalytics.validation.conn.ConnectedComponentsValidationTest;
+import nl.tudelft.graphalytics.validation.algorithms.conn.ConnectedComponentsOutput;
+import nl.tudelft.graphalytics.validation.algorithms.conn.ConnectedComponentsValidationTest;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
 import org.apache.giraph.graph.Vertex;

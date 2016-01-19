@@ -17,8 +17,8 @@ package nl.tudelft.graphalytics.giraph.algorithms.stats;
 
 import nl.tudelft.graphalytics.giraph.GiraphTestGraphLoader;
 import nl.tudelft.graphalytics.validation.GraphStructure;
-import nl.tudelft.graphalytics.validation.stats.LocalClusteringCoefficientOutput;
-import nl.tudelft.graphalytics.validation.stats.LocalClusteringCoefficientValidationTest;
+import nl.tudelft.graphalytics.validation.algorithms.stats.LocalClusteringCoefficientOutput;
+import nl.tudelft.graphalytics.validation.algorithms.stats.LocalClusteringCoefficientValidationTest;
 import org.apache.giraph.aggregators.AggregatorWriter;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
