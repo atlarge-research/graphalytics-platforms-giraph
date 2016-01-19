@@ -25,6 +25,7 @@ import org.apache.hadoop.io.NullWritable;
 import java.io.IOException;
 
 import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DAMPING_FACTOR;
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DANGLING_NODE_SUM;
 import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.NUMBER_OF_ITERATIONS;
 
 /**
@@ -52,7 +53,7 @@ public class PageRankComputation extends BasicComputation<LongWritable, DoubleWr
 		if (getSuperstep() == 0) {
 			vertex.getValue().set(1.0 / getTotalNumVertices());
 		} else {
-			double sum = 0.0;
+			double sum = this.<PageRankWorkerContext>getWorkerContext().getLastDanglingNodeSum() / getTotalNumVertices();
 			for (DoubleWritable message : messages) {
 				sum += message.get();
 			}
@@ -60,8 +61,12 @@ public class PageRankComputation extends BasicComputation<LongWritable, DoubleWr
 		}
 
 		if (getSuperstep() < numberOfIterations) {
-			msgObject.set(vertex.getValue().get() / vertex.getNumEdges());
-			sendMessageToAllEdges(vertex, msgObject);
+			if (vertex.getNumEdges() == 0) {
+				aggregate(DANGLING_NODE_SUM, vertex.getValue());
+			} else {
+				msgObject.set(vertex.getValue().get() / vertex.getNumEdges());
+				sendMessageToAllEdges(vertex, msgObject);
+			}
 		} else {
 			vertex.voteToHalt();
 		}
