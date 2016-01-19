@@ -19,6 +19,7 @@ import nl.tudelft.graphalytics.domain.GraphFormat;
 import nl.tudelft.graphalytics.domain.algorithms.CommunityDetectionParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
+import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.edge.HashMapEdges;
 import org.apache.giraph.graph.Computation;
@@ -29,6 +30,7 @@ import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 
 import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.*;
+import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 import static org.apache.giraph.conf.GiraphConstants.VERTEX_EDGES_CLASS;
 
 /**
@@ -92,14 +94,9 @@ public class CommunityDetectionJob extends GiraphJob {
 
 	@Override
 	protected void configure(GiraphConfiguration config) {
-		NODE_PREFERENCE.set(config, parameters.getNodePreference());
-		HOP_ATTENUATION.set(config, parameters.getHopAttenuation());
 		MAX_ITERATIONS.set(config, parameters.getMaxIterations());
-
-		if (graphFormat.isDirected()) {
-			// Use edge store optimized for random access behavior (edge value lookup)
-			VERTEX_EDGES_CLASS.set(config, HashMapEdges.class);
-		}
+		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in CC)
+		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}
 
 }

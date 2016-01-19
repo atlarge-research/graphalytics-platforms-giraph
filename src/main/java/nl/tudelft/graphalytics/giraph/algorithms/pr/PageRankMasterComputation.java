@@ -13,29 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.algorithms.stats;
+package nl.tudelft.graphalytics.giraph.algorithms.pr;
 
+import org.apache.giraph.aggregators.DoubleSumAggregator;
 import org.apache.giraph.master.DefaultMasterCompute;
 
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DANGLING_NODE_SUM;
+
 /**
- * Master computation for the local clustering coefficient algorithm, which
- * registers the DoubleAverage aggregator to yield a graph-wide average LCC.
+ * Master computation for the PageRank algorithm to manage tracking of the sum of dangling node values.
  *
  * @author Tim Hegeman
  */
-public class LocalClusteringCoefficientMasterComputation extends DefaultMasterCompute {
-
-	public static final String LCC_AGGREGATOR_NAME = "Average LCC";
+public class PageRankMasterComputation extends DefaultMasterCompute {
 
 	@Override
-	public void compute() {
-		//Computation is not required for this master compute.
-	}
-
-	@Override
-	public void initialize() throws InstantiationException,
-			IllegalAccessException {
-		registerPersistentAggregator(LCC_AGGREGATOR_NAME, DoubleAverageAggregator.class);
+	public void initialize() throws InstantiationException, IllegalAccessException {
+		registerAggregator(DANGLING_NODE_SUM, DoubleSumAggregator.class);
 	}
 
 }

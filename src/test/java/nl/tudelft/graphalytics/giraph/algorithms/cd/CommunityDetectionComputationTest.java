@@ -47,18 +47,16 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 			CommunityDetectionParameters parameters) {
 		GiraphConfiguration configuration = new GiraphConfiguration();
 		configuration.setComputationClass(computationClass);
-		CommunityDetectionConfiguration.HOP_ATTENUATION.set(configuration, parameters.getHopAttenuation());
 		CommunityDetectionConfiguration.MAX_ITERATIONS.set(configuration, parameters.getMaxIterations());
-		CommunityDetectionConfiguration.NODE_PREFERENCE.set(configuration, parameters.getNodePreference());
 		return configuration;
 	}
 
 	private static <E extends Writable> CommunityDetectionOutput outputFromResultGraph(
-			TestGraph<LongWritable, CommunityDetectionLabel, E> result) {
+			TestGraph<LongWritable, LongWritable, E> result) {
 		Map<Long, Long> communityIds = new HashMap<>();
-		for (Map.Entry<LongWritable, Vertex<LongWritable, CommunityDetectionLabel, E>> vertexEntry :
+		for (Map.Entry<LongWritable, Vertex<LongWritable, LongWritable, E>> vertexEntry :
 				result.getVertices().entrySet()) {
-			communityIds.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().getLabel());
+			communityIds.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().get());
 		}
 
 		return new CommunityDetectionOutput(communityIds);
@@ -71,11 +69,11 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 				parameters);
 		VERTEX_EDGES_CLASS.set(configuration, HashMapEdges.class);
 
-		TestGraph<LongWritable, CommunityDetectionLabel, BooleanWritable> inputGraph =
-				GiraphTestGraphLoader.createGraph(configuration, graph, new CommunityDetectionLabel(),
+		TestGraph<LongWritable, LongWritable, BooleanWritable> inputGraph =
+				GiraphTestGraphLoader.createGraph(configuration, graph, new LongWritable(),
 						new BooleanWritable());
 
-		TestGraph<LongWritable, CommunityDetectionLabel, BooleanWritable> result =
+		TestGraph<LongWritable, LongWritable, BooleanWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
 
 		return outputFromResultGraph(result);
@@ -87,11 +85,11 @@ public class CommunityDetectionComputationTest extends CommunityDetectionValidat
 		GiraphConfiguration configuration = configurationFromParameters(UndirectedCommunityDetectionComputation.class,
 				parameters);
 
-		TestGraph<LongWritable, CommunityDetectionLabel, NullWritable> inputGraph =
-				GiraphTestGraphLoader.createGraph(configuration, graph, new CommunityDetectionLabel(),
+		TestGraph<LongWritable, LongWritable, NullWritable> inputGraph =
+				GiraphTestGraphLoader.createGraph(configuration, graph, new LongWritable(),
 						NullWritable.get());
 
-		TestGraph<LongWritable, CommunityDetectionLabel, NullWritable> result =
+		TestGraph<LongWritable, LongWritable, NullWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
 
 		return outputFromResultGraph(result);

@@ -87,11 +87,6 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 
 	@Override
 	protected void configure(GiraphConfiguration config) {
-		// Set the master compute class to handle LCC aggregation
-		config.setMasterComputeClass(LocalClusteringCoefficientMasterComputation.class);
-		config.setAggregatorWriterClass(TextAggregatorWriter.class);
-		config.setInt(TextAggregatorWriter.FREQUENCY, TextAggregatorWriter.AT_THE_END);
-		config.set(TextAggregatorWriter.FILENAME, getOutputPath() + "/aggregators");
 		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts of neighbour sets)
 		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
 	}

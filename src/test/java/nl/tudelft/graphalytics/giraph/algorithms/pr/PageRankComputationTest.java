@@ -41,6 +41,8 @@ public class PageRankComputationTest extends PageRankValidationTest {
 			throws Exception {
 		GiraphConfiguration configuration = new GiraphConfiguration();
 		configuration.setComputationClass(PageRankComputation.class);
+		configuration.setMasterComputeClass(PageRankMasterComputation.class);
+		configuration.setWorkerContextClass(PageRankWorkerContext.class);
 		PageRankConfiguration.DAMPING_FACTOR.set(configuration, parameters.getDampingFactor());
 		PageRankConfiguration.NUMBER_OF_ITERATIONS.set(configuration, parameters.getNumberOfIterations());
 

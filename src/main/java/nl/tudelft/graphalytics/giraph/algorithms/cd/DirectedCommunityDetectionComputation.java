@@ -15,159 +15,71 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.cd;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
-import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
 
-import java.io.IOException;
-
-import static nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionConfiguration.*;
-
 /**
- * Community Detection algorithm
- * Credits: mostly Marcin's code refactored
- * Detect Community using algorithm by methods provided in
- * "Towards Real-Time Community Detection in Large Networks by Ian X.Y. Leung,Pan Hui,Pietro Li,and Jon Crowcroft"
- * Changes
- * - refactored private attributes to CommunityDetectionWritable
- * - refactored very long methods
- * - removed unused attributes.
- * Question
- * - why are there two iteration thresholds?
+ * Specialisation of {@link CommonCommunityDetectionComputation} for directed graphs. The value of an edge is true iff
+ * the edge is bidirectional. These edges have double weight in the label selection process.
  *
- * Note: Value on edge is true iff the edge is bidirectional. These edges have double weight in the label selection
- * process.
- *
- * @author Wing Ngai
  * @author Tim Hegeman
  */
-public class DirectedCommunityDetectionComputation extends BasicComputation<LongWritable, CommunityDetectionLabel,
-		BooleanWritable, CommunityDetectionMessage> {
-	// Load the parameters from the configuration before the compute method to save expensive look-ups
-	private float nodePreference;
-	private float hopAttenuation;
-	private int maxIterations;
-
-	@Override
-	public void setConf(ImmutableClassesGiraphConfiguration<LongWritable, CommunityDetectionLabel,
-			BooleanWritable> conf) {
-		super.setConf(conf);
-		nodePreference = NODE_PREFERENCE.get(getConf());
-		hopAttenuation = HOP_ATTENUATION.get(getConf());
-		maxIterations = MAX_ITERATIONS.get(getConf());
-	}
+public class DirectedCommunityDetectionComputation extends CommonCommunityDetectionComputation<BooleanWritable> {
 
 	private static final boolean UNIDIRECTIONAL = false;
 	private static final BooleanWritable UNIDIRECTIONAL_EDGE = new BooleanWritable(UNIDIRECTIONAL);
 	private static final boolean BIDIRECTIONAL = true;
-	private static BooleanWritable BIDIRECTIONAL_EDGE = new BooleanWritable(BIDIRECTIONAL);
-	private CommunityDetectionMessage msgObject = new CommunityDetectionMessage();
 
 	@Override
-	public void compute(Vertex<LongWritable, CommunityDetectionLabel, BooleanWritable> vertex,
-			Iterable<CommunityDetectionMessage> messages) throws IOException {
-		// max iteration, a stopping condition for data-sets which do not converge
-		if (this.getSuperstep() > maxIterations) {
-			determineLabel(vertex, messages);
-			vertex.voteToHalt();
-			return;
-		}
-
-		// send vertex id to outgoing neighbours, so that all vertices know their incoming edges.
+	protected void doInitialisationStep(Vertex<LongWritable, LongWritable, BooleanWritable> vertex,
+			Iterable<LongWritable> messages) {
 		if (getSuperstep() == 0) {
-			msgObject.setSourceId(vertex.getId());
-			sendMessageToAllEdges(vertex, msgObject);
-			// add incoming edges
-		} else if (getSuperstep() == 1) {
-			// Construct a set of existing edges
-			LongSet edges = new LongOpenHashSet();
-			for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {
-				edges.add(edge.getTargetVertexId().get());
+			// Send vertex id to outgoing neighbours, so that all vertices know their incoming edges.
+			sendMessageToAllEdges(vertex, vertex.getId());
+		} else {
+			// Store incoming messages (vertex ids) in a set
+			LongSet messageSet = new LongOpenHashSet();
+			for (LongWritable message : messages) {
+				messageSet.add(message.get());
 			}
-			// Read incoming messages and add edges/update edge values where appropriate
-			for (CommunityDetectionMessage message : messages) {
-				if (!edges.contains(message.getSourceId().get())) {
-					vertex.addEdge(EdgeFactory.create(new LongWritable(message.getSourceId().get()), UNIDIRECTIONAL_EDGE));
-					edges.add(message.getSourceId().get());
-				} else {
-					vertex.getEdgeValue(message.getSourceId()).set(BIDIRECTIONAL);
+			// Update the value of existing edges
+			for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {
+				long targetVertexId = edge.getTargetVertexId().get();
+				if (messageSet.contains(targetVertexId)) {
+					messageSet.remove(targetVertexId);
+					edge.getValue().set(BIDIRECTIONAL);
 				}
 			}
-			// initialize algorithm, set label as the vertex id, set label score as 1.0
-			vertex.getValue().setLabel(vertex.getId().get());
-			vertex.getValue().setLabelScore(1.0f);
-			vertex.getValue().setNumberOfNeighbours(edges.size());
+			// Create new unidirectional edges to match incoming edges
+			for (LongIterator messageIter = messageSet.iterator(); messageIter.hasNext(); ) {
+				long newEdge = messageIter.nextLong();
+				vertex.addEdge(EdgeFactory.create(new LongWritable(newEdge), UNIDIRECTIONAL_EDGE));
+			}
 
-			// send initial label to all neighbors
-			propagateLabel(vertex);
-		} else {
-			// label assign
-			determineLabel(vertex, messages);
-			propagateLabel(vertex);
+			// Set the initial label of the vertex
+			vertex.getValue().set(vertex.getId().get());
 		}
 	}
 
-	/**
-	 * Propagate label information to neighbors
-	 */
-	private void propagateLabel(Vertex<LongWritable, CommunityDetectionLabel, BooleanWritable> vertex) {
-		msgObject.setSourceId(vertex.getId());
-		msgObject.setLabel(vertex.getValue());
-		sendMessageToAllEdges(vertex, msgObject);
+	@Override
+	protected int getNumberOfInitialisationSteps() {
+		return 2;
 	}
 
-	private Long2ObjectMap<CommunityDetectionLabelStatistics> labelStatistics = new Long2ObjectOpenHashMap<>();
-
-	/**
-	 * Chooses new label AND updates label score
-	 * - chose new label based on SUM of Label_score(sum all scores of label X) x f(i')^m, where m is number of edges (ignore edge weight == 1) -> EQ 2
-	 * - score of a vertex new label is a maximal score from all existing scores for that particular label MINUS delta (specified as input parameter) -> EQ 3
-	 */
-	private void determineLabel(Vertex<LongWritable, CommunityDetectionLabel, BooleanWritable> vertex,
-			Iterable<CommunityDetectionMessage> messages) {
-		// Compute for each incoming label the aggregate and maximum scores
-		labelStatistics.clear();
-		for (CommunityDetectionMessage message : messages) {
-			long label = message.getLabel().getLabel();
-			if (!labelStatistics.containsKey(label)) {
-				labelStatistics.put(label, new CommunityDetectionLabelStatistics(label));
-			}
-
-			if (vertex.getEdgeValue(message.getSourceId()).get() == BIDIRECTIONAL) {
-				labelStatistics.get(label).addLabel(message.getLabel(), nodePreference, 2.0f);
-			} else {
-				labelStatistics.get(label).addLabel(message.getLabel(), nodePreference);
-			}
-		}
-
-		// Find the label with the highest aggregate score
-		float highestScore = Float.MIN_VALUE;
-		CommunityDetectionLabelStatistics winningLabel = null;
-		for (Long2ObjectMap.Entry<CommunityDetectionLabelStatistics> singleLabel : labelStatistics.long2ObjectEntrySet()) {
-			if (winningLabel == null ||
-					singleLabel.getValue().getAggScore() > highestScore + EPSILON ||
-					(Math.abs(singleLabel.getValue().getAggScore() - highestScore) <= EPSILON &&
-							singleLabel.getLongKey() > winningLabel.getLabel())) {
-				highestScore = singleLabel.getValue().getAggScore();
-				winningLabel = singleLabel.getValue();
-			}
-		}
-
-		// Update the label of this vertex
-		if (winningLabel != null) {
-			if (vertex.getValue().getLabel() == winningLabel.getLabel()) {
-				vertex.getValue().setLabelScore(winningLabel.getMaxScore());
-			} else {
-				vertex.getValue().setLabelScore(winningLabel.getMaxScore() - hopAttenuation);
-				vertex.getValue().setLabel(winningLabel.getLabel());
+	@Override
+	protected void propagateLabel(Vertex<LongWritable, LongWritable, BooleanWritable> vertex) {
+		LongWritable message = vertex.getValue();
+		for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {
+			sendMessage(edge.getTargetVertexId(), message);
+			// Send twice on bidirectional edges
+			if (edge.getValue().get() == BIDIRECTIONAL) {
+				sendMessage(edge.getTargetVertexId(), message);
 			}
 		}
 	}

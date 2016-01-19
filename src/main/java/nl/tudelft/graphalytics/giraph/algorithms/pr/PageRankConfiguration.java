@@ -45,6 +45,11 @@ public final class PageRankConfiguration {
 	public static final IntConfOption NUMBER_OF_ITERATIONS = new IntConfOption(
 			NUMBER_OF_ITERATIONS_KEY, -1, "Number of iterations to run the PageRank algorithm for");
 
+	/**
+	 * Name of aggregator for compute the sum of dangling node values.
+	 */
+	public static final String DANGLING_NODE_SUM = "Dangling node sum";
+
 	private PageRankConfiguration() {
 	}
 

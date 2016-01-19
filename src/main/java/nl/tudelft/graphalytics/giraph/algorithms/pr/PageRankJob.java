@@ -89,6 +89,9 @@ public class PageRankJob extends GiraphJob {
 		NUMBER_OF_ITERATIONS.set(config, parameters.getNumberOfIterations());
 		// Set the message store type to optimize for one-to-many messages (i.e. broadcasts as used in PageRank)
 		MESSAGE_ENCODE_AND_STORE_TYPE.set(config, MessageEncodeAndStoreType.EXTRACT_BYTEARRAY_PER_PARTITION);
+
+		config.setMasterComputeClass(PageRankMasterComputation.class);
+		config.setWorkerContextClass(PageRankWorkerContext.class);
 	}
 
 }

@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * @author Tim Hegeman
  */
 public abstract class CommunityDetectionVertexInputFormat<E extends Writable> extends
-		TextVertexInputFormat<LongWritable, CommunityDetectionLabel, E> {
+		TextVertexInputFormat<LongWritable, LongWritable, E> {
 
 	private static final Pattern SEPARATOR = Pattern.compile("[\t ]");
 
@@ -52,7 +52,6 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 		 * Cached vertex id for the current line
 		 */
 		private LongWritable id;
-		private final CommunityDetectionLabel defaultLabel = new CommunityDetectionLabel();
 
 		@Override
 		protected String[] preprocessLine(Text line) throws IOException {
@@ -67,8 +66,8 @@ public abstract class CommunityDetectionVertexInputFormat<E extends Writable> ex
 		}
 
 		@Override
-		protected CommunityDetectionLabel getValue(String[] tokens) throws IOException {
-			return defaultLabel;
+		protected LongWritable getValue(String[] tokens) throws IOException {
+			return id;
 		}
 
 		@Override
