@@ -26,8 +26,6 @@ import org.apache.hadoop.io.NullWritable;
 
 import java.io.IOException;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientMasterComputation.LCC_AGGREGATOR_NAME;
-
 /**
  * Computation for the local clustering coefficient algorithm on Giraph for directed graphs.
  *
@@ -60,7 +58,6 @@ public class DirectedLocalClusteringCoefficientComputation extends
 			// Fourth superstep: compute the ratio of responses to requests
 			double lcc = computeLCC(vertex.getValue().get(), messages);
 			vertex.getValue().set(lcc);
-			aggregate(LCC_AGGREGATOR_NAME, new DoubleAverage(lcc));
 			vertex.voteToHalt();
 		}
 	}
