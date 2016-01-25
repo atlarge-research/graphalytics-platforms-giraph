@@ -167,10 +167,10 @@
 						<exclude>src/main/resources/**</exclude>
 						<exclude>config-template/**</exclude>
 						<exclude>
-							src/main/java/nl/tudelft/graphalytics/giraph/algorithms/conn/DirectedConnectedComponentsComputation.java
+							src/main/java/nl/tudelft/graphalytics/giraph/algorithms/conn/DirectedWeaklyConnectedComponentsComputation.java
 						</exclude>
 						<exclude>
-							src/main/java/nl/tudelft/graphalytics/giraph/algorithms/conn/UndirectedConnectedComponentsComputation.java
+							src/main/java/nl/tudelft/graphalytics/giraph/algorithms/conn/UndirectedWeaklyConnectedComponentsComputation.java
 						</exclude>
 					</excludes>
 					<mapping>

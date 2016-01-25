@@ -21,11 +21,11 @@ import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
 import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
 import nl.tudelft.graphalytics.domain.*;
 import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
-import nl.tudelft.graphalytics.giraph.algorithms.cd.CommunityDetectionJob;
-import nl.tudelft.graphalytics.giraph.algorithms.conn.ConnectedComponentsJob;
-import nl.tudelft.graphalytics.giraph.algorithms.evo.ForestFireModelJob;
+import nl.tudelft.graphalytics.giraph.algorithms.cdlp.CommunityDetectionLPJob;
+import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJob;
+import nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelJob;
 import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
-import nl.tudelft.graphalytics.giraph.algorithms.stats.LocalClusteringCoefficientJob;
+import nl.tudelft.graphalytics.giraph.algorithms.lcc.LocalClusteringCoefficientJob;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
@@ -139,19 +139,19 @@ public class GiraphPlatform implements Platform {
 				case BFS:
 					job = new BreadthFirstSearchJob(parameters, graph.getGraphFormat());
 					break;
-				case CD:
-					job = new CommunityDetectionJob(parameters, graph.getGraphFormat());
+				case CDLP:
+					job = new CommunityDetectionLPJob(parameters, graph.getGraphFormat());
 					break;
-				case CONN:
-					job = new ConnectedComponentsJob(graph.getGraphFormat());
+				case WCC:
+					job = new WeaklyConnectedComponentsJob(graph.getGraphFormat());
 					break;
-				case EVO:
+				case FFM:
 					job = new ForestFireModelJob(parameters, graph.getGraphFormat());
 					break;
-				case STATS:
+				case LCC:
 					job = new LocalClusteringCoefficientJob(graph.getGraphFormat());
 					break;
-				case PAGERANK:
+				case PR:
 					job = new PageRankJob(parameters, graph.getGraphFormat());
 					break;
 				default:
