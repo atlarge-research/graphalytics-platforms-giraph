@@ -25,6 +25,7 @@ import nl.tudelft.graphalytics.giraph.algorithms.cdlp.CommunityDetectionLPJob;
 import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJob;
 import nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelJob;
 import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
+import nl.tudelft.graphalytics.giraph.algorithms.sssp.SingleSourceShortestPathJob;
 import nl.tudelft.graphalytics.giraph.algorithms.lcc.LocalClusteringCoefficientJob;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -115,8 +116,20 @@ public class GiraphPlatform implements Platform {
 		FileSystem fs = FileSystem.get(new Configuration());
 		LOG.debug("- Uploading vertex list");
 		fs.copyFromLocalFile(new Path(graph.getVertexFilePath()), new Path(uploadPath + ".v"));
+		
 		LOG.debug("- Uploading edge list");
 		fs.copyFromLocalFile(new Path(graph.getEdgeFilePath()), new Path(uploadPath + ".e"));
+
+		if (graph.hasVertexProperties()) {
+			LOG.debug("- Uploading vertex list with properties");
+			fs.copyFromLocalFile(new Path(graph.getVertexPropertyFilePath()), new Path(uploadPath + ".vp"));
+		}
+		
+		if (graph.hasEdgeProperties()) {
+			LOG.debug("- Uploading edge list with properties");
+			fs.copyFromLocalFile(new Path(graph.getEdgePropertyFilePath()), new Path(uploadPath + ".ep"));
+		}
+		
 		fs.close();
 
 		// Track available datasets in a map
@@ -153,6 +166,9 @@ public class GiraphPlatform implements Platform {
 					break;
 				case PR:
 					job = new PageRankJob(parameters, graph.getGraphFormat());
+					break;
+				case SSSP:
+					job = new SingleSourceShortestPathJob(parameters, graph);
 					break;
 				default:
 					throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);

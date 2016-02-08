@@ -20,22 +20,27 @@ package nl.tudelft.graphalytics.giraph.io;
  *
  * @author Tim Hegeman
  */
-public class LongPair {
+public class Triplet<A, B, C> {
 
-	private long first;
-	private long second;
-
-	public LongPair(long first, long second) {
+	final private A first;
+	final private B second;
+	final private C third;
+	
+	public Triplet(A first, B second, C third) {
 		this.first = first;
 		this.second = second;
+		this.third = third;
 	}
-
-	public long getFirst() {
+	
+	public A getFirst() {
 		return first;
 	}
-
-	public long getSecond() {
+	
+	public B getSecond() {
 		return second;
 	}
-
+	
+	public C getThird() {
+		return third;
+	}
 }

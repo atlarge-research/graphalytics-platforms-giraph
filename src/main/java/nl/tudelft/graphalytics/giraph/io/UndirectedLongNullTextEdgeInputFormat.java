@@ -76,7 +76,5 @@ public class UndirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<L
 		public Edge<LongWritable, NullWritable> getCurrentEdge() throws IOException, InterruptedException {
 			return EdgeFactory.create(new LongWritable(outputBackwards ? first : second));
 		}
-
 	}
-
 }

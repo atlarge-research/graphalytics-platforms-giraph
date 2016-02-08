@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.cdlp;
 
-import nl.tudelft.graphalytics.giraph.io.LongPair;
+import nl.tudelft.graphalytics.giraph.io.Triplet;
 import org.apache.giraph.io.EdgeReader;
 import org.apache.giraph.io.formats.TextEdgeInputFormat;
 import org.apache.hadoop.io.BooleanWritable;
@@ -43,30 +43,30 @@ public class DirectedCommunityDetectionLPEdgeInputFormat extends TextEdgeInputFo
 		return new LongBooleanEdgeReader();
 	}
 
-	private class LongBooleanEdgeReader extends TextEdgeReaderFromEachLineProcessed<LongPair> {
+	private class LongBooleanEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Void>> {
 
 		@Override
-		protected LongPair preprocessLine(Text line) throws IOException {
+		protected Triplet preprocessLine(Text line) throws IOException {
 			String[] tokens = SEPARATOR.split(line.toString());
 			long source = Long.parseLong(tokens[0]);
 			long destination = Long.parseLong(tokens[1]);
-			return new LongPair(source, destination);
+			return new Triplet(source, destination, null);
 		}
 
 		@Override
-		protected LongWritable getTargetVertexId(LongPair line)
+		protected LongWritable getTargetVertexId(Triplet<Long, Long, Void> line)
 				throws IOException {
 			return new LongWritable(line.getSecond());
 		}
 
 		@Override
-		protected LongWritable getSourceVertexId(LongPair line)
+		protected LongWritable getSourceVertexId(Triplet<Long, Long, Void> line)
 				throws IOException {
 			return new LongWritable(line.getFirst());
 		}
 
 		@Override
-		protected BooleanWritable getValue(LongPair line) throws IOException {
+		protected BooleanWritable getValue(Triplet<Long, Long, Void> line) throws IOException {
 			return new BooleanWritable(false);
 		}
 

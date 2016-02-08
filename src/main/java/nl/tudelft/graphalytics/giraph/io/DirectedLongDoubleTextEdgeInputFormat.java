@@ -33,41 +33,42 @@ import java.util.regex.Pattern;
  *
  * @author Tim Hegeman
  */
-public class DirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, NullWritable> {
+public class DirectedLongDoubleTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, DoubleWritable> {
 
 	private static final Pattern SEPARATOR = Pattern.compile(" ");
 
 	@Override
-	public EdgeReader<LongWritable, NullWritable> createEdgeReader(
+	public EdgeReader<LongWritable, DoubleWritable> createEdgeReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
 		return new LongNullEdgeReader();
 	}
 
-	private class LongNullEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Void>> {
+	private class LongNullEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Double>> {
 
 		@Override
 		protected Triplet preprocessLine(Text line) throws IOException {
 			String[] tokens = SEPARATOR.split(line.toString());
 			long source = Long.parseLong(tokens[0]);
 			long destination = Long.parseLong(tokens[1]);
-			return new Triplet<Long, Long, Void>(source, destination, null);
+			double value = Long.parseLong(tokens[2]);
+			return new Triplet(source, destination, value);
 		}
 
 		@Override
-		protected LongWritable getTargetVertexId(Triplet<Long, Long, Void> line)
-				throws IOException {
-			return new LongWritable(line.getFirst());
-		}
-
-		@Override
-		protected LongWritable getSourceVertexId(Triplet<Long, Long, Void> line)
+		protected LongWritable getTargetVertexId(Triplet<Long, Long, Double> line)
 				throws IOException {
 			return new LongWritable(line.getSecond());
 		}
 
 		@Override
-		protected NullWritable getValue(Triplet<Long, Long, Void> line) throws IOException {
-			return NullWritable.get();
+		protected LongWritable getSourceVertexId(Triplet<Long, Long, Double> line)
+				throws IOException {
+			return new LongWritable(line.getFirst());
+		}
+
+		@Override
+		protected DoubleWritable getValue(Triplet<Long, Long, Double> line) throws IOException {
+			return new DoubleWritable(line.getThird());
 		}
 
 	}

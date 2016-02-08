@@ -15,6 +15,12 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
+import nl.tudelft.graphalytics.PlatformExecutionException;
+import nl.tudelft.graphalytics.domain.PropertyType;
+
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.giraph.conf.StrConfOption;
@@ -102,6 +108,8 @@ public abstract class GiraphJob extends Configured implements Tool {
 	public static final StrConfOption ZOOKEEPER_ADDRESS = new StrConfOption(ZOOKEEPER_ADDRESS_KEY,
 			"", "ZooKeeper address");
 
+	private List<PropertyType> vertexProperties;
+	private List<PropertyType> edgeProperties;
 	private String inputPath;
 	private String outputPath;
 	private String zooKeeperAddress;
@@ -156,11 +164,36 @@ public abstract class GiraphJob extends Configured implements Tool {
 		// Set the computation class
 		configuration.setComputationClass(getComputationClass());
 
-		// Set the input path and class
+		// Check if vertex match
+		List<PropertyType> reqVertexProps = getRequiredVertexProperties();
+		
+		if (!reqVertexProps.isEmpty() && !reqVertexProps.equals(vertexProperties)) {
+			throw new PlatformExecutionException("Required vertex properties (" 
+						+ getPropertyTypesAsString(reqVertexProps) 
+						+ ") do not match actual vertex properties (" 
+						+ getPropertyTypesAsString(vertexProperties) + ")");
+		}
+
+		// Check if edge properties match
+		List<PropertyType> reqEdgeProps = getRequiredEdgeProperties();
+		if (!reqEdgeProps.isEmpty() && !reqEdgeProps.equals(edgeProperties)) {
+			throw new PlatformExecutionException("Required edge properties (" 
+						+ getPropertyTypesAsString(reqVertexProps) 
+						+ ") do not match actual edge properties (" 
+						+ getPropertyTypesAsString(edgeProperties) + ")");
+		}
+		
+		// Prepare input paths
+		Path vertexInputPath = new Path(inputPath + (reqVertexProps.isEmpty() ? ".v" : ".vp"));
+		Path edgeInputPath = new Path(inputPath + (reqVertexProps.isEmpty() ? ".e" : ".ep"));
+		
+		// Set input paths
+		GiraphFileInputFormat.addVertexInputPath(configuration, vertexInputPath);
+		GiraphFileInputFormat.addEdgeInputPath(configuration, edgeInputPath);
+		
+		// Set vertex/edge input format class
 		configuration.setVertexInputFormatClass(getVertexInputFormatClass());
-		GiraphFileInputFormat.addVertexInputPath(configuration, new Path(inputPath + ".v"));
 		configuration.setEdgeInputFormatClass(getEdgeInputFormatClass());
-		GiraphFileInputFormat.addEdgeInputPath(configuration, new Path(inputPath + ".e"));
 
 		// Set and output path and class
 		configuration.set(FileOutputFormat.OUTDIR, outputPath);
@@ -187,6 +220,46 @@ public abstract class GiraphJob extends Configured implements Tool {
 		return job.run(false) ? 0 : -1;
 	}
 
+	/**
+	 * Convert a list of properties types to a human-readable string.
+	 * 
+	 * @param list The list of properties types
+	 * @return The list as a human-readable string.
+	 */
+	private String getPropertyTypesAsString(List<PropertyType> list) {
+		if (list.isEmpty()) {
+			return "<none>";
+		}
+		
+		String str = list.get(0).toString();
+		
+		for (int i = 1; i < list.size(); i++) {
+			str += ", " + list.get(i).toString();
+		}
+		
+		return str;
+	}
+	
+	/**
+	 * Get the list of properties required on the edges of the graph. Subclasses can 
+	 * override this method.
+	 * 
+	 * @return List of required edge properties.
+	 */
+	protected List<PropertyType> getRequiredEdgeProperties() {
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Get the list of properties required on the vertices of the graph. Subclasses can 
+	 * override this method.
+	 * 
+	 * @return List of required vertex properties.
+	 */
+	protected List<PropertyType> getRequiredVertexProperties() {
+		return Collections.emptyList();
+	}
+	
 	/**
 	 * Hook for subclasses of GiraphJob to specify which Computation to run for
 	 * the Giraph job.

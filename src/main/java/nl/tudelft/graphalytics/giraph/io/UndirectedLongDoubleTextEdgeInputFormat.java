@@ -15,12 +15,13 @@
  */
 package nl.tudelft.graphalytics.giraph.io;
 
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.edge.EdgeFactory;
 import org.apache.giraph.io.EdgeReader;
 import org.apache.giraph.io.formats.TextEdgeInputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
@@ -33,41 +34,50 @@ import java.util.regex.Pattern;
  *
  * @author Tim Hegeman
  */
-public class DirectedLongNullTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, NullWritable> {
+public class UndirectedLongDoubleTextEdgeInputFormat extends TextEdgeInputFormat<LongWritable, DoubleWritable> {
 
 	private static final Pattern SEPARATOR = Pattern.compile(" ");
 
 	@Override
-	public EdgeReader<LongWritable, NullWritable> createEdgeReader(
+	public EdgeReader<LongWritable, DoubleWritable> createEdgeReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
-		return new LongNullEdgeReader();
+		return new LongDoubleEdgeReader();
 	}
 
-	private class LongNullEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Void>> {
+	private class LongDoubleEdgeReader extends TextEdgeReader {
+
+		private boolean outputBackwards = true;
+		private long first;
+		private long second;
+		private double value;
 
 		@Override
-		protected Triplet preprocessLine(Text line) throws IOException {
-			String[] tokens = SEPARATOR.split(line.toString());
-			long source = Long.parseLong(tokens[0]);
-			long destination = Long.parseLong(tokens[1]);
-			return new Triplet<Long, Long, Void>(source, destination, null);
+		public boolean nextEdge() throws IOException, InterruptedException {
+			if (!outputBackwards) {
+				outputBackwards = true;
+				return true;
+			}
+
+			if (!getRecordReader().nextKeyValue()) {
+				return false;
+			}
+
+			String[] tokens = SEPARATOR.split(getRecordReader().getCurrentValue().toString());
+			first = Long.parseLong(tokens[0]);
+			second = Long.parseLong(tokens[1]);
+			value = Double.parseDouble(tokens[2]);
+			outputBackwards = false;
+			return true;
 		}
 
 		@Override
-		protected LongWritable getTargetVertexId(Triplet<Long, Long, Void> line)
-				throws IOException {
-			return new LongWritable(line.getFirst());
+		public LongWritable getCurrentSourceId() throws IOException, InterruptedException {
+			return new LongWritable(outputBackwards ? second : first);
 		}
 
 		@Override
-		protected LongWritable getSourceVertexId(Triplet<Long, Long, Void> line)
-				throws IOException {
-			return new LongWritable(line.getSecond());
-		}
-
-		@Override
-		protected NullWritable getValue(Triplet<Long, Long, Void> line) throws IOException {
-			return NullWritable.get();
+		public Edge<LongWritable, DoubleWritable> getCurrentEdge() throws IOException, InterruptedException {
+			return EdgeFactory.create(new LongWritable(outputBackwards ? first : second), new DoubleWritable(value));
 		}
 
 	}
