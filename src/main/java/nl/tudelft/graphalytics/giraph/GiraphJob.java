@@ -163,29 +163,10 @@ public abstract class GiraphJob extends Configured implements Tool {
 
 		// Set the computation class
 		configuration.setComputationClass(getComputationClass());
-
-		// Check if vertex match
-		List<PropertyType> reqVertexProps = getRequiredVertexProperties();
-		
-		if (!reqVertexProps.isEmpty() && !reqVertexProps.equals(vertexProperties)) {
-			throw new PlatformExecutionException("Required vertex properties (" 
-						+ getPropertyTypesAsString(reqVertexProps) 
-						+ ") do not match actual vertex properties (" 
-						+ getPropertyTypesAsString(vertexProperties) + ")");
-		}
-
-		// Check if edge properties match
-		List<PropertyType> reqEdgeProps = getRequiredEdgeProperties();
-		if (!reqEdgeProps.isEmpty() && !reqEdgeProps.equals(edgeProperties)) {
-			throw new PlatformExecutionException("Required edge properties (" 
-						+ getPropertyTypesAsString(reqVertexProps) 
-						+ ") do not match actual edge properties (" 
-						+ getPropertyTypesAsString(edgeProperties) + ")");
-		}
 		
 		// Prepare input paths
-		Path vertexInputPath = new Path(inputPath + (reqVertexProps.isEmpty() ? ".v" : ".vp"));
-		Path edgeInputPath = new Path(inputPath + (reqVertexProps.isEmpty() ? ".e" : ".ep"));
+		Path vertexInputPath = new Path(inputPath + ".v");
+		Path edgeInputPath = new Path(inputPath + ".e");
 		
 		// Set input paths
 		GiraphFileInputFormat.addVertexInputPath(configuration, vertexInputPath);
@@ -218,46 +199,6 @@ public abstract class GiraphJob extends Configured implements Tool {
 		// Launch it
 		LOG.debug("- Starting Giraph job");
 		return job.run(false) ? 0 : -1;
-	}
-
-	/**
-	 * Convert a list of properties types to a human-readable string.
-	 * 
-	 * @param list The list of properties types
-	 * @return The list as a human-readable string.
-	 */
-	private String getPropertyTypesAsString(List<PropertyType> list) {
-		if (list.isEmpty()) {
-			return "<none>";
-		}
-		
-		String str = list.get(0).toString();
-		
-		for (int i = 1; i < list.size(); i++) {
-			str += ", " + list.get(i).toString();
-		}
-		
-		return str;
-	}
-	
-	/**
-	 * Get the list of properties required on the edges of the graph. Subclasses can 
-	 * override this method.
-	 * 
-	 * @return List of required edge properties.
-	 */
-	protected List<PropertyType> getRequiredEdgeProperties() {
-		return Collections.emptyList();
-	}
-
-	/**
-	 * Get the list of properties required on the vertices of the graph. Subclasses can 
-	 * override this method.
-	 * 
-	 * @return List of required vertex properties.
-	 */
-	protected List<PropertyType> getRequiredVertexProperties() {
-		return Collections.emptyList();
 	}
 	
 	/**

@@ -15,18 +15,18 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.pr;
 
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DAMPING_FACTOR;
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DANGLING_NODE_SUM;
+import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.NUMBER_OF_ITERATIONS;
+
+import java.io.IOException;
+
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
-
-import java.io.IOException;
-
-import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DAMPING_FACTOR;
-import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.DANGLING_NODE_SUM;
-import static nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankConfiguration.NUMBER_OF_ITERATIONS;
 
 /**
  * Implementation of the PageRank algorithm on Giraph.

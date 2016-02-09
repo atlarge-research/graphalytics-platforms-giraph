@@ -15,18 +15,11 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
-import nl.tudelft.graphalytics.Platform;
-import nl.tudelft.graphalytics.PlatformExecutionException;
-import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
-import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
-import nl.tudelft.graphalytics.domain.*;
-import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
-import nl.tudelft.graphalytics.giraph.algorithms.cdlp.CommunityDetectionLPJob;
-import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJob;
-import nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelJob;
-import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
-import nl.tudelft.graphalytics.giraph.algorithms.sssp.SingleSourceShortestPathJob;
-import nl.tudelft.graphalytics.giraph.algorithms.lcc.LocalClusteringCoefficientJob;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
@@ -37,10 +30,22 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import nl.tudelft.graphalytics.Platform;
+import nl.tudelft.graphalytics.PlatformExecutionException;
+import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
+import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
+import nl.tudelft.graphalytics.domain.Algorithm;
+import nl.tudelft.graphalytics.domain.Benchmark;
+import nl.tudelft.graphalytics.domain.Graph;
+import nl.tudelft.graphalytics.domain.NestedConfiguration;
+import nl.tudelft.graphalytics.domain.PlatformBenchmarkResult;
+import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
+import nl.tudelft.graphalytics.giraph.algorithms.cdlp.CommunityDetectionLPJob;
+import nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelJob;
+import nl.tudelft.graphalytics.giraph.algorithms.lcc.LocalClusteringCoefficientJob;
+import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
+import nl.tudelft.graphalytics.giraph.algorithms.sssp.SingleSourceShortestPathJob;
+import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJob;
 
 /**
  * Entry point of the Graphalytics benchmark for Giraph. Provides the platform
@@ -116,7 +121,7 @@ public class GiraphPlatform implements Platform {
 		FileSystem fs = FileSystem.get(new Configuration());
 		LOG.debug("- Uploading vertex list");
 		fs.copyFromLocalFile(new Path(graph.getVertexFilePath()), new Path(uploadPath + ".v"));
-		
+
 		LOG.debug("- Uploading edge list");
 		fs.copyFromLocalFile(new Path(graph.getEdgeFilePath()), new Path(uploadPath + ".e"));
 
@@ -124,12 +129,12 @@ public class GiraphPlatform implements Platform {
 			LOG.debug("- Uploading vertex list with properties");
 			fs.copyFromLocalFile(new Path(graph.getVertexPropertyFilePath()), new Path(uploadPath + ".vp"));
 		}
-		
+
 		if (graph.hasEdgeProperties()) {
 			LOG.debug("- Uploading edge list with properties");
 			fs.copyFromLocalFile(new Path(graph.getEdgePropertyFilePath()), new Path(uploadPath + ".ep"));
 		}
-		
+
 		fs.close();
 
 		// Track available datasets in a map
@@ -178,9 +183,11 @@ public class GiraphPlatform implements Platform {
 			String hdfsOutputPath = Paths.get(hdfsDirectory, getName(), "output",
 					algorithm + "-" + graph.getName()).toString();
 			Configuration jobConf = new Configuration();
+
 			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(graph.getName()));
 			GiraphJob.OUTPUT_PATH.set(jobConf, hdfsOutputPath);
 			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(giraphConfig, ZOOKEEPERADDRESS));
+
 			transferIfSet(giraphConfig, JOB_WORKERCOUNT, jobConf, GiraphJob.WORKER_COUNT);
 			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.HEAP_SIZE_MB);
 			transferIfSet(giraphConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
