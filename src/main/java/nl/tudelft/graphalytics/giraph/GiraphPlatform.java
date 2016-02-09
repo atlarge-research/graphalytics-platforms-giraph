@@ -125,16 +125,6 @@ public class GiraphPlatform implements Platform {
 		LOG.debug("- Uploading edge list");
 		fs.copyFromLocalFile(new Path(graph.getEdgeFilePath()), new Path(uploadPath + ".e"));
 
-		if (graph.hasVertexProperties()) {
-			LOG.debug("- Uploading vertex list with properties");
-			fs.copyFromLocalFile(new Path(graph.getVertexPropertyFilePath()), new Path(uploadPath + ".vp"));
-		}
-
-		if (graph.hasEdgeProperties()) {
-			LOG.debug("- Uploading edge list with properties");
-			fs.copyFromLocalFile(new Path(graph.getEdgePropertyFilePath()), new Path(uploadPath + ".ep"));
-		}
-
 		fs.close();
 
 		// Track available datasets in a map
@@ -204,6 +194,7 @@ public class GiraphPlatform implements Platform {
 		if (result != 0) {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
+
 		return new PlatformBenchmarkResult(NestedConfiguration.empty());
 	}
 
