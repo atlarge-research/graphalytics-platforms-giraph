@@ -42,7 +42,7 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 		sourceVertexId = SingleSourceShortestPathConfiguration.SOURCE_VERTEX.get(getConf());
 	}
 
-	private DoubleWritable msg;
+	private DoubleWritable msg = new DoubleWritable();
 
 	@Override
 	public void compute(Vertex<LongWritable, DoubleWritable, DoubleWritable> vertex,
@@ -59,7 +59,6 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 			} else {
 				vertex.getValue().set(Double.POSITIVE_INFINITY);
 			}
-			System.out.println(vertex.getId().get() + " set value to " + vertex.getValue().get());
 		}
 
 		// In subsequent supersteps, vertices need to find the minimum
@@ -69,14 +68,10 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 
 			// find minimum
 			for (DoubleWritable message: messages) {
-				System.out.println(vertex.getId().get() + " received " + " " + message.get());
-
 				if (message.get() < minDist) {
 					minDist = message.get();
 				}
 			}
-
-			System.out.println(vertex.getId().get() + " checks " + " " + minDist + " < " + vertex.getValue().get());
 
 			// if smaller, set new distance and update neighbors
 			if (minDist < vertex.getValue().get()) {
@@ -93,10 +88,8 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 				LongWritable id = edge.getTargetVertexId();
 				double value = edge.getValue().get();
 
-				msg.set(dist + value);
+				//msg.set(dist + value);
 				sendMessage(id, msg);
-
-				System.out.println(vertex.getId().get() + " sends " + " " + dist + " + " + value + " to " + id);
 			}
 		}
 

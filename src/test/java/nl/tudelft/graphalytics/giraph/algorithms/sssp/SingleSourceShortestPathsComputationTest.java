@@ -73,12 +73,12 @@ public class SingleSourceShortestPathsComputationTest extends SingleSourceShorte
 
 		TestGraph<LongWritable, DoubleWritable, DoubleWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
+
 		Map<Long, Double> pathLengths = new HashMap<>();
 		for (Map.Entry<LongWritable, Vertex<LongWritable, DoubleWritable, DoubleWritable>> vertexEntry :
 				result.getVertices().entrySet()) {
 			pathLengths.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().get());
 		}
-		System.out.println(graph.getVertices().size() + " " + inputGraph.getVertices().size() + " " + result.getVertices().size() + " " + pathLengths.size());
 
 		return new SingleSourceShortestPathsOutput(pathLengths);
 	}
