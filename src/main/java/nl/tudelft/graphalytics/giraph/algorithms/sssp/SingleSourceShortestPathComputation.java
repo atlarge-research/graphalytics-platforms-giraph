@@ -59,6 +59,7 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 			} else {
 				vertex.getValue().set(Double.POSITIVE_INFINITY);
 			}
+			System.out.println(vertex.getId().get() + " set value to " + vertex.getValue().get());
 		}
 
 		// In subsequent supersteps, vertices need to find the minimum
@@ -68,14 +69,14 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 
 			// find minimum
 			for (DoubleWritable message: messages) {
-				System.out.println(vertex.getId() + " received " + " " + message.get());
+				System.out.println(vertex.getId().get() + " received " + " " + message.get());
 
 				if (message.get() < minDist) {
 					minDist = message.get();
 				}
 			}
 
-			System.out.println(vertex.getId() + " checks " + " " + minDist + " < " + vertex.getValue().get());
+			System.out.println(vertex.getId().get() + " checks " + " " + minDist + " < " + vertex.getValue().get());
 
 			// if smaller, set new distance and update neighbors
 			if (minDist < vertex.getValue().get()) {
@@ -94,6 +95,8 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 
 				msg.set(dist + value);
 				sendMessage(id, msg);
+
+				System.out.println(vertex.getId().get() + " sends " + " " + dist + " + " + value + " to " + id);
 			}
 		}
 

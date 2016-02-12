@@ -62,7 +62,7 @@ public class SingleSourceShortestPathsComputationTest extends SingleSourceShorte
 				GiraphTestGraphLoader.createPropertyGraph(
 						configuration,
 						graph,
-						new GiraphTestGraphLoader.DefaultWritableConverter<>(new DoubleWritable(Long.MAX_VALUE)),
+						new GiraphTestGraphLoader.DefaultWritableConverter<>(new DoubleWritable(Double.POSITIVE_INFINITY)),
 						new WritableConverter<Double, DoubleWritable>() {
 							@Override
 							public DoubleWritable convert(Double t) {
@@ -73,12 +73,12 @@ public class SingleSourceShortestPathsComputationTest extends SingleSourceShorte
 
 		TestGraph<LongWritable, DoubleWritable, DoubleWritable> result =
 				InternalVertexRunner.runWithInMemoryOutput(configuration, inputGraph);
-
 		Map<Long, Double> pathLengths = new HashMap<>();
 		for (Map.Entry<LongWritable, Vertex<LongWritable, DoubleWritable, DoubleWritable>> vertexEntry :
 				result.getVertices().entrySet()) {
 			pathLengths.put(vertexEntry.getKey().get(), vertexEntry.getValue().getValue().get());
 		}
+		System.out.println(graph.getVertices().size() + " " + inputGraph.getVertices().size() + " " + result.getVertices().size() + " " + pathLengths.size());
 
 		return new SingleSourceShortestPathsOutput(pathLengths);
 	}
