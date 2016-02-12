@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.giraph.io.formats.TextVertexValueInputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -26,7 +25,7 @@ public class SingleSourceShortestPathVertexInputFormat extends TextVertexValueIn
 
 		@Override
 		protected DoubleWritable getValue(Text line) throws IOException {
-			return new DoubleWritable(Double.MAX_VALUE);
+			return new DoubleWritable(Double.POSITIVE_INFINITY);
 		}
 	}
 }

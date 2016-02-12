@@ -70,10 +70,14 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 
 			// find minimum
 			for (DoubleWritable message: messages) {
+				System.out.println(vertex.getId() + " received " + " " + message.get());
+
 				if (message.get() < minDist) {
 					minDist = message.get();
 				}
 			}
+
+			System.out.println(vertex.getId() + " checks " + " " + minDist + " < " + vertex.getValue().get());
 
 			// if smaller, set new distance and update neighbors
 			if (minDist < vertex.getValue().get()) {
