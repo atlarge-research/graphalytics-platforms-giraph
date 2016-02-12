@@ -88,7 +88,7 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 				LongWritable id = edge.getTargetVertexId();
 				double value = edge.getValue().get();
 
-				//msg.set(dist + value);
+				msg.set(dist + value);
 				sendMessage(id, msg);
 			}
 		}
