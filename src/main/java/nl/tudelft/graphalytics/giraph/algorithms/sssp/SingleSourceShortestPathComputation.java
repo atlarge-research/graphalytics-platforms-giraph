@@ -15,8 +15,6 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.sssp;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
-
 import java.io.IOException;
 
 import org.apache.giraph.conf.ImmutableClassesGiraphConfiguration;
@@ -41,7 +39,7 @@ public class SingleSourceShortestPathComputation extends BasicComputation<LongWr
 	@Override
 	public void setConf(ImmutableClassesGiraphConfiguration<LongWritable, DoubleWritable, DoubleWritable> conf) {
 		super.setConf(conf);
-		sourceVertexId = SOURCE_VERTEX.get(getConf());
+		sourceVertexId = SingleSourceShortestPathConfiguration.SOURCE_VERTEX.get(getConf());
 	}
 
 	private DoubleWritable msg;
