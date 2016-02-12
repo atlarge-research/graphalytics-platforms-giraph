@@ -15,32 +15,65 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
-import nl.tudelft.graphalytics.validation.GraphStructure;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.utils.TestGraph;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
+
+import nl.tudelft.graphalytics.util.graph.PropertyGraph;
+import nl.tudelft.graphalytics.validation.GraphStructure;
 
 /**
  * @author Tim Hegeman
  */
 public class GiraphTestGraphLoader {
 
-	public static <V extends Writable, E extends Writable> TestGraph<LongWritable, V, E> createGraph(
-			GiraphConfiguration configuration, GraphStructure input, V vertexValue, E edgeValue) {
-		TestGraph<LongWritable, V, E> graph = new TestGraph<>(configuration);
+	public static interface WritableConverter<T, TW extends Writable> {
+		public TW convert(T t);
+	}
 
-		for (long sourceId : input.getVertices()) {
-			graph.addVertex(new LongWritable(sourceId), vertexValue);
+	public static class DefaultWritableConverter<TW extends Writable> implements WritableConverter<Void, TW> {
+		final TW value;
+
+		public DefaultWritableConverter(TW value) {
+			this.value = value;
 		}
 
-		for (long sourceId : input.getVertices()) {
-			for (long destinationId : input.getEdgesForVertex(sourceId)) {
-				graph.addEdge(new LongWritable(sourceId), new LongWritable(destinationId), edgeValue);
+		@Override
+		public TW convert(Void arg) {
+			return value;
+		}
+	}
+
+	public static <V, E, VW extends Writable, EW extends Writable> TestGraph<LongWritable, VW, EW> createPropertyGraph(
+			GiraphConfiguration configuration, PropertyGraph<V, E> input,
+			WritableConverter<V, VW> vertexConverter, WritableConverter<E, EW> edgeConverter) {
+		TestGraph<LongWritable, VW, EW> graph = new TestGraph<>(configuration);
+
+		for (PropertyGraph<V, E>.Vertex v: input.getVertices()) {
+			graph.addVertex(
+					new LongWritable(v.getId()),
+					vertexConverter.convert(v.getValue()));
+		}
+
+		for (PropertyGraph<V, E>.Vertex v: input.getVertices()) {
+			for (PropertyGraph<V, E>.Edge e: v.getOutgoingEdges()) {
+				graph.addEdge(
+						new LongWritable(e.getSourceVertex().getId()),
+						new LongWritable(e.getDestinationVertex().getId()),
+						edgeConverter.convert(e.getValue()));
 			}
 		}
 
 		return graph;
 	}
 
+	public static <V extends Writable, E extends Writable> TestGraph<LongWritable, V, E> createGraph(
+			GiraphConfiguration configuration, GraphStructure input, V vertexValue, E edgeValue) {
+		return createPropertyGraph(
+				configuration,
+				input.toPropertyGraph(),
+				new DefaultWritableConverter<>(vertexValue),
+				new DefaultWritableConverter<>(edgeValue));
+	}
 }

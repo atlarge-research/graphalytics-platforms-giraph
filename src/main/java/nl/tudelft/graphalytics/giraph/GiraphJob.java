@@ -15,12 +15,6 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
-import nl.tudelft.graphalytics.PlatformExecutionException;
-import nl.tudelft.graphalytics.domain.PropertyType;
-
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.giraph.conf.StrConfOption;
@@ -108,8 +102,6 @@ public abstract class GiraphJob extends Configured implements Tool {
 	public static final StrConfOption ZOOKEEPER_ADDRESS = new StrConfOption(ZOOKEEPER_ADDRESS_KEY,
 			"", "ZooKeeper address");
 
-	private List<PropertyType> vertexProperties;
-	private List<PropertyType> edgeProperties;
 	private String inputPath;
 	private String outputPath;
 	private String zooKeeperAddress;
@@ -163,15 +155,15 @@ public abstract class GiraphJob extends Configured implements Tool {
 
 		// Set the computation class
 		configuration.setComputationClass(getComputationClass());
-		
+
 		// Prepare input paths
 		Path vertexInputPath = new Path(inputPath + ".v");
 		Path edgeInputPath = new Path(inputPath + ".e");
-		
+
 		// Set input paths
 		GiraphFileInputFormat.addVertexInputPath(configuration, vertexInputPath);
 		GiraphFileInputFormat.addEdgeInputPath(configuration, edgeInputPath);
-		
+
 		// Set vertex/edge input format class
 		configuration.setVertexInputFormatClass(getVertexInputFormatClass());
 		configuration.setEdgeInputFormatClass(getEdgeInputFormatClass());
@@ -200,7 +192,7 @@ public abstract class GiraphJob extends Configured implements Tool {
 		LOG.debug("- Starting Giraph job");
 		return job.run(false) ? 0 : -1;
 	}
-	
+
 	/**
 	 * Hook for subclasses of GiraphJob to specify which Computation to run for
 	 * the Giraph job.

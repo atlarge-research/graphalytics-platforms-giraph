@@ -15,6 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -119,6 +120,7 @@ public class GiraphPlatform implements Platform {
 
 		// Upload the graph to HDFS
 		FileSystem fs = FileSystem.get(new Configuration());
+
 		LOG.debug("- Uploading vertex list");
 		fs.copyFromLocalFile(new Path(graph.getVertexFilePath()), new Path(uploadPath + ".v"));
 
@@ -219,7 +221,14 @@ public class GiraphPlatform implements Platform {
 
 	@Override
 	public void deleteGraph(String graphName) {
-		// TODO: Clean up the graph on HDFS, depending on some configuration.
+		String path = pathsOfGraphs.get(graphName);
+
+		try(FileSystem fs = FileSystem.get(new Configuration())) {
+			fs.delete(new Path(path + ".v"), true);
+			fs.delete(new Path(path + ".e"), true);
+		} catch(IOException e) {
+			LOG.warn("Error occured while deleting files", e);
+		}
 	}
 
 	@Override

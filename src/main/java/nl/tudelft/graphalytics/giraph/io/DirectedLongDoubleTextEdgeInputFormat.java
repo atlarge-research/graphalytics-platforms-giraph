@@ -15,17 +15,16 @@
  */
 package nl.tudelft.graphalytics.giraph.io;
 
+import java.io.IOException;
+import java.util.regex.Pattern;
+
 import org.apache.giraph.io.EdgeReader;
 import org.apache.giraph.io.formats.TextEdgeInputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
-import java.io.IOException;
-import java.util.regex.Pattern;
 
 /**
  * Input format for edge-based directed graphs. Inspired by IntNullTextEdgeInputFormat
@@ -51,7 +50,7 @@ public class DirectedLongDoubleTextEdgeInputFormat extends TextEdgeInputFormat<L
 			long source = Long.parseLong(tokens[0]);
 			long destination = Long.parseLong(tokens[1]);
 			double value = Long.parseLong(tokens[2]);
-			return new Triplet(source, destination, value);
+			return new Triplet<Long, Long, Double>(source, destination, value);
 		}
 
 		@Override
