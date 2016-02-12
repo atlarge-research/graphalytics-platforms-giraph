@@ -15,10 +15,8 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.wcc;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
-import nl.tudelft.graphalytics.giraph.GiraphJob;
-import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
-import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
+import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
+
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
@@ -29,7 +27,10 @@ import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 import org.apache.giraph.io.formats.LongLongNullTextInputFormat;
 
-import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
+import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.giraph.GiraphJob;
+import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
+import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
 
 /**
  * The job configuration of the connected components implementation for Giraph.
