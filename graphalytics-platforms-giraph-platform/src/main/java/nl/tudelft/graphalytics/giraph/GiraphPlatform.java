@@ -189,6 +189,13 @@ public class GiraphPlatform implements Platform {
 			// Execute the Giraph job
 			result = ToolRunner.run(jobConf, job, new String[0]);
 			// TODO: Clean up intermediate and output data, depending on some configuration.
+
+			if(benchmark.isOutputRequired()){
+					FileSystem fs = FileSystem.get(new Configuration());
+					fs.copyToLocalFile(new Path(hdfsOutputPath), new Path(benchmark.getOutputPath()));
+					fs.close();
+			}
+
 		} catch (Exception e) {
 			throw new PlatformExecutionException("Giraph job failed with exception: ", e);
 		}
