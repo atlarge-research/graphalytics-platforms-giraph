@@ -50,7 +50,7 @@ public abstract class CommonCommunityDetectionLPComputation<E extends Writable> 
 	public void compute(Vertex<LongWritable, LongWritable, E> vertex, Iterable<LongWritable> messages)
 			throws IOException {
 		// max iteration, a stopping condition for data-sets which do not converge
-		if (getSuperstep() >= maxIterations + getNumberOfInitialisationSteps()) {
+		if (getSuperstep() >= maxIterations + getNumberOfInitialisationSteps() - 1) {
 			determineLabel(vertex, messages);
 			vertex.voteToHalt();
 		} else if (getSuperstep() < getNumberOfInitialisationSteps()) {
