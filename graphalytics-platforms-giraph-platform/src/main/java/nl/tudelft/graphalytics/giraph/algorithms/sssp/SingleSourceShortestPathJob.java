@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.sssp;
 
-import static nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchConfiguration.SOURCE_VERTEX;
+import static nl.tudelft.graphalytics.giraph.algorithms.sssp.SingleSourceShortestPathConfiguration.SOURCE_VERTEX;
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
