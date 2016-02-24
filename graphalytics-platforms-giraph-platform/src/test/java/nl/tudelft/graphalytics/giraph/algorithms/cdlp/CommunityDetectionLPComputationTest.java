@@ -67,7 +67,6 @@ public class CommunityDetectionLPComputationTest extends CommunityDetectionLPVal
 			GraphStructure graph, CommunityDetectionLPParameters parameters) throws Exception {
 		GiraphConfiguration configuration = configurationFromParameters(DirectedCommunityDetectionLPComputation.class,
 				parameters);
-		VERTEX_EDGES_CLASS.set(configuration, HashMapEdges.class);
 
 		TestGraph<LongWritable, LongWritable, BooleanWritable> inputGraph =
 				GiraphTestGraphLoader.createGraph(configuration, graph, new LongWritable(),
