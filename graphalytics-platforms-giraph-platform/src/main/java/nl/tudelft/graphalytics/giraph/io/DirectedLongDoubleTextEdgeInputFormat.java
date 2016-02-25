@@ -39,18 +39,18 @@ public class DirectedLongDoubleTextEdgeInputFormat extends TextEdgeInputFormat<L
 	@Override
 	public EdgeReader<LongWritable, DoubleWritable> createEdgeReader(
 			InputSplit split, TaskAttemptContext context) throws IOException {
-		return new LongNullEdgeReader();
+		return new LongDoubleEdgeReader();
 	}
 
-	private class LongNullEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Double>> {
+	private class LongDoubleEdgeReader extends TextEdgeReaderFromEachLineProcessed<Triplet<Long, Long, Double>> {
 
 		@Override
-		protected Triplet preprocessLine(Text line) throws IOException {
+		protected Triplet<Long, Long, Double> preprocessLine(Text line) throws IOException {
 			String[] tokens = SEPARATOR.split(line.toString());
 			long source = Long.parseLong(tokens[0]);
 			long destination = Long.parseLong(tokens[1]);
-			double value = Long.parseLong(tokens[2]);
-			return new Triplet<Long, Long, Double>(source, destination, value);
+			double value = Double.parseDouble(tokens[2]);
+			return new Triplet<>(source, destination, value);
 		}
 
 		@Override

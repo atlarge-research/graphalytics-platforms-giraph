@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.apache.giraph.edge.Edge;
 import org.apache.giraph.edge.EdgeFactory;
+import org.apache.giraph.edge.MutableEdge;
 import org.apache.giraph.graph.Vertex;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -49,7 +50,7 @@ public class DirectedCommunityDetectionLPComputation extends CommonCommunityDete
 				messageSet.add(message.get());
 			}
 			// Update the value of existing edges
-			for (Edge<LongWritable, BooleanWritable> edge : vertex.getEdges()) {
+			for (MutableEdge<LongWritable, BooleanWritable> edge : vertex.getMutableEdges()) {
 				long targetVertexId = edge.getTargetVertexId().get();
 				if (messageSet.contains(targetVertexId)) {
 					messageSet.remove(targetVertexId);
