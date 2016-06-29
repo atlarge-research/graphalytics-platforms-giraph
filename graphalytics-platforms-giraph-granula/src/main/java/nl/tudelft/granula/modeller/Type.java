@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-package nl.tudelft.pds.granula.modeller.giraph;
+package nl.tudelft.granula.modeller;
 
-import nl.tudelft.pds.granula.archiver.entity.Identifier;
+import nl.tudelft.granula.modeller.entity.BasicType;
 
-public class GiraphType extends Identifier {
+public class Type extends BasicType {
 
-    public static String TopActor = "TopActor";
-    public static String TopMission = "TopMission";
-
-    public static String StartTime = "StartTime";
-    public static String EndTime = "EndTime";
-
-    public static String ColorBlue = "#3399FF";
-    public static String ColorGrey = "#999999";
-
+    // actor
     public static String Giraph = "Giraph";
+    public static String Worker = "Worker";
+
+    // mission
+    public static String Job = "Job";
     public static String LoadGraph = "LoadGraph";
+    public static String OffloadPartition = "OffloadPartition";
     public static String OffloadGraph = "OffloadGraph";
     public static String ProcessGraph = "ProcessGraph";
 
+    // info
+    public static String StartTime = "StartTime";
+    public static String EndTime = "EndTime";
     public static String Bsp = "Bsp";
     public static String Superstep = "Superstep";
 
-    public static String Job = "Job";
 
 }

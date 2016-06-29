@@ -102,6 +102,11 @@ public abstract class GiraphJob extends Configured implements Tool {
 	public static final StrConfOption ZOOKEEPER_ADDRESS = new StrConfOption(ZOOKEEPER_ADDRESS_KEY,
 			"", "ZooKeeper address");
 
+	public static final String JOB_ID_KEY = "graphalytics.job-id";
+
+	public static final StrConfOption JOB_ID = new StrConfOption(JOB_ID_KEY,
+			"", "Job Id");
+
 	private String inputPath;
 	private String outputPath;
 	private String zooKeeperAddress;

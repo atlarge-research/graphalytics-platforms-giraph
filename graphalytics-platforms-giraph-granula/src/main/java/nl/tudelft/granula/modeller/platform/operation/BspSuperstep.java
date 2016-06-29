@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-package nl.tudelft.pds.granula.modeller.giraph.operation;
+package nl.tudelft.granula.modeller.platform.operation;
 
-import nl.tudelft.pds.granula.modeller.giraph.GiraphType;
-import nl.tudelft.pds.granula.modeller.model.operation.ConcreteOperationModel;
-import nl.tudelft.pds.granula.modeller.rule.linking.UniqueParentLinking;
-import nl.tudelft.pds.granula.modeller.rule.visual.MainInfoTableVisualization;
+import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
 import java.util.ArrayList;
 
-public class BspSuperstep extends ConcreteOperationModel {
+public class BspSuperstep extends RealtimeOperationModel {
 
     public BspSuperstep() {
-        super(GiraphType.Bsp, GiraphType.Superstep);
+        super(Type.Bsp, Type.Superstep);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(GiraphType.Giraph, GiraphType.ProcessGraph));
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.ProcessGraph));
 
+        String summary = "BspSuperstep.";
+        addInfoDerivation(new SimpleSummaryDerivation(11, summary));
 
-        addVisualDerivation(new MainInfoTableVisualization(1,
-                new ArrayList<String>() {{
-//                    add("InputMethod");
-                }}));
     }
 
 }

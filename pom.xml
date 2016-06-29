@@ -46,7 +46,6 @@
 				<activeByDefault>false</activeByDefault>
 			</activation>
 			<modules>
-				<module>granula-model-giraph</module>
 				<module>graphalytics-platforms-giraph-granula</module>
 			</modules>
 		</profile>

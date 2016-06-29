@@ -13,7 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph.reporting.logging;
+package nl.tudelft.graphalytics.giraph;
+
+import org.apache.hadoop.yarn.client.cli.LogsCLI;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.log4j.FileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Layout;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -22,30 +37,33 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import nl.tudelft.graphalytics.granula.logging.UtilizationLogger;
-import nl.tudelft.graphalytics.granula.GranulaManager;
-import org.apache.hadoop.yarn.client.cli.LogsCLI;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Layout;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.appender.FileAppender;
-import org.apache.logging.log4j.core.config.AppenderRef;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.log4j.core.layout.PatternLayout;
-
 /**
  * Created by wlngai on 9-9-15.
  */
-public class GraphalyticLogger {
+public class PlatformLogger {
 
-    protected static final Logger LOG = LogManager.getLogger();
-    protected static Level coreLogLevel = Level.INFO;
+    protected static Level platformLogLevel = Level.INFO;
+
+    public static void startPlatformLogging(Path fileName) {
+        Logger.getRootLogger().removeAllAppenders();
+        FileAppender fa = new FileAppender();
+        fa.setName("FileLogger");
+        fa.setFile(fileName.toString());
+        fa.setLayout(new PatternLayout("%d [%t] %-5p[%c{1} (%M(%L))] %m%n"));
+        fa.setThreshold(platformLogLevel);
+        fa.setAppend(true);
+        fa.activateOptions();
+        Logger.getRootLogger().addAppender(fa);
+        waitInterval(1);
+    }
+
+    public static void stopPlatformLogging() {
+        Logger.getRootLogger().removeAllAppenders();
+    }
+
+
+    protected static final org.apache.logging.log4j.Logger LOG = LogManager.getLogger();
+    protected static org.apache.logging.log4j.Level coreLogLevel = org.apache.logging.log4j.Level.INFO;
 
     public static void startCoreLogging() {
         addConsoleAppender("nl.tudelft.graphalytics", coreLogLevel);
@@ -55,20 +73,13 @@ public class GraphalyticLogger {
         removeAppender("nl.tudelft.graphalytics");
     }
 
-    protected static void waitInterval(int waitInterval) {
-        try {
-            TimeUnit.SECONDS.sleep(waitInterval);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public static void addConsoleAppender(String name, Level level) {
+    public static void addConsoleAppender(String name, org.apache.logging.log4j.Level level) {
         LoggerContext context = (LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
         Configuration config = context.getConfiguration();
 
         String pattern = "%d [%t] %-5p[%c{1} (%M(%L))] %m%n";
-        Layout layout = PatternLayout.createLayout(pattern, config, null,
+        Layout layout = org.apache.logging.log4j.core.layout.PatternLayout.createLayout(pattern, config, null,
                 Charset.defaultCharset(), true, false, null, null);
 
         ConsoleAppender consoleAppender = ConsoleAppender.createAppender(
@@ -88,27 +99,6 @@ public class GraphalyticLogger {
     }
 
 
-    public static void addFileAppender(String name, Level level, String logFilePath) {
-
-        LoggerContext context = (LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
-        Configuration config = context.getConfiguration();
-
-        String pattern = "%d [%t] %-5p [%c{1} (%M(%L))] %m%n";
-        Layout layout = PatternLayout.createLayout(pattern, config, null,
-                Charset.defaultCharset(), true, false, null, null);
-
-        Appender appender = FileAppender.createAppender(logFilePath, "false", "false", "File", "true",
-                "false", "false", "4000", layout, null, "false", null, config);
-        appender.start();
-        config.addAppender(appender);
-        AppenderRef ref = AppenderRef.createAppenderRef("File", null, null);
-        AppenderRef[] refs = new AppenderRef[] {ref};
-        LoggerConfig loggerConfig = LoggerConfig.createLogger("false", level, name,
-                "true", refs, null, config, null );
-        loggerConfig.addAppender(appender, null, null);
-        config.addLogger(name, loggerConfig);
-        context.updateLoggers();
-    }
 
     public static void removeAppender(String name) {
         LoggerContext context = (LoggerContext) org.apache.logging.log4j.LogManager.getContext(false);
@@ -142,9 +132,6 @@ public class GraphalyticLogger {
         return appIds;
     }
 
-
-
-
     public static void collectYarnLog(String applicationId, String yarnlogPath) {
 
         try {
@@ -171,17 +158,19 @@ public class GraphalyticLogger {
     }
 
     public static void collectYarnLogs(Path logDataPath) {
-        List<String> appIds = GraphalyticLogger.getYarnAppIds(logDataPath.resolve("OperationLog").resolve("driver.logs"));
+        List<String> appIds = getYarnAppIds(logDataPath.resolve("platform").resolve("driver.logs"));
         for (String appId : appIds) {
-            GraphalyticLogger.collectYarnLog(appId, logDataPath + "/OperationLog/yarn" + appId + ".logs");
+            collectYarnLog(appId, logDataPath + "/platform/yarn" + appId + ".logs");
         }
 
     }
 
-    public static void collectUtilLog(List<String> nodes, List<String> metrics, long startTime, long endTime, Path logDataPath) {
-        if(GranulaManager.isUtilLoggingEnabled) {
-            UtilizationLogger utilLogger = GranulaManager.utilizationLogger;
-            utilLogger.collectUtilData(nodes, metrics, startTime, endTime, logDataPath);
+
+    private static void waitInterval(int waitInterval) {
+        try {
+            TimeUnit.SECONDS.sleep(waitInterval);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
