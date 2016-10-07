@@ -3,7 +3,7 @@
 
 	<groupId>nl.tudelft.graphalytics</groupId>
 	<artifactId>graphalytics-platforms-giraph-granula</artifactId>
-	<version>0.1-SNAPSHOT</version>
+	<version>0.1</version>
 	<name>Graphalytics Platform Giraph - Granula Libraries</name>
 
 	<properties>
@@ -11,7 +11,7 @@
 		<hadoop.version>2.4.1</hadoop.version>
 		<giraph.version>1.1.0-hadoop2</giraph.version>
 		<giraph.granula.version>1.1.0-hadoop2-withGranula</giraph.granula.version>
-		<graphalytics.version>0.3-SNAPSHOT</graphalytics.version>
+		<graphalytics.version>0.3</graphalytics.version>
 		<log4j.version>2.5</log4j.version>
 	</properties>
 
