@@ -4,7 +4,7 @@
 
 	<groupId>nl.tudelft.graphalytics</groupId>
 	<artifactId>graphalytics-platforms-giraph</artifactId>
-	<version>0.1</version>
+	<version>0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -12,7 +12,7 @@
 
 		<hadoop.version>2.4.1</hadoop.version>
 		<giraph.version>1.1.0-hadoop2</giraph.version>
-		<graphalytics.version>0.3</graphalytics.version>
+		<graphalytics.version>0.4-SNAPSHOT</graphalytics.version>
 		<log4j.version>2.5</log4j.version>
 	</properties>
 
