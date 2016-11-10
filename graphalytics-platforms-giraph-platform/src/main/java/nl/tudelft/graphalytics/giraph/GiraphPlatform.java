@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import nl.tudelft.graphalytics.BenchmarkMetrics;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
@@ -64,6 +65,11 @@ public class GiraphPlatform implements Platform {
 	public static final String GIRAPH_PROPERTIES_FILE = "giraph.properties";
 
 	/**
+	 * Default file name for the file storing System properties.
+	 */
+	public static final String BENCHMARK_PROPERTIES_FILE = "benchmark.properties";
+
+	/**
 	 * Property key for setting the number of workers to be used for running Giraph jobs.
 	 */
 	public static final String JOB_WORKERCOUNT = "giraph.job.worker-count";
@@ -90,6 +96,7 @@ public class GiraphPlatform implements Platform {
 
 	private Map<String, String> pathsOfGraphs = new HashMap<>();
 	private org.apache.commons.configuration.Configuration giraphConfig;
+	private org.apache.commons.configuration.Configuration benchmarkConfig;
 	private String hdfsDirectory;
 
 	/**
@@ -104,6 +111,7 @@ public class GiraphPlatform implements Platform {
 		// Load Giraph-specific configuration
 		try {
 			giraphConfig = new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
+			benchmarkConfig = new PropertiesConfiguration(BENCHMARK_PROPERTIES_FILE);
 		} catch (ConfigurationException e) {
 			// Fall-back to an empty properties file
 			LOG.info("Could not find or load giraph.properties.");
@@ -133,11 +141,18 @@ public class GiraphPlatform implements Platform {
 		pathsOfGraphs.put(graph.getName(), uploadPath);
 	}
 
+	private void setupGraph(Graph graph) {
+		String uploadPath = Paths.get(hdfsDirectory, getName(), "input", graph.getName()).toString();
+		pathsOfGraphs.put(graph.getName(), uploadPath);
+	}
+
 	@Override
 	public PlatformBenchmarkResult executeAlgorithmOnGraph(Benchmark benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		Graph graph = benchmark.getGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
+
+		setupGraph(graph);
 
 		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), graph.getName());
 
@@ -173,7 +188,7 @@ public class GiraphPlatform implements Platform {
 
 			// Create the job configuration using the Giraph properties file
 			String hdfsOutputPath = Paths.get(hdfsDirectory, getName(), "output",
-					algorithm + "-" + graph.getName()).toString();
+					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + graph.getName()).toString();
 			Configuration jobConf = new Configuration();
 
 			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(graph.getName()));
@@ -197,6 +212,7 @@ public class GiraphPlatform implements Platform {
 					fs.copyToLocalFile(false, new Path(hdfsOutputPath), new Path(benchmark.getOutputPath()), true);
 					fs.close();
 			}
+			deleteOutput(hdfsOutputPath);
 
 		} catch (Exception e) {
 			throw new PlatformExecutionException("Giraph job failed with exception: ", e);
@@ -207,6 +223,16 @@ public class GiraphPlatform implements Platform {
 		}
 
 		return new PlatformBenchmarkResult(NestedConfiguration.empty());
+	}
+
+	private void deleteOutput(String outputPath) {
+
+		try(FileSystem fs = FileSystem.get(new Configuration())) {
+			LOG.info(String.format("Deleting output directory: %s at hdfs.", outputPath));
+			fs.delete(new Path(outputPath), true);
+		} catch(IOException e) {
+			LOG.warn("Error occured while deleting files", e);
+		}
 	}
 
 	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
@@ -238,6 +264,11 @@ public class GiraphPlatform implements Platform {
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
+	}
+
+	@Override
+	public BenchmarkMetrics retrieveMetrics() {
+		return new BenchmarkMetrics();
 	}
 
 	@Override

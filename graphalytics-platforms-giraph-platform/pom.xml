@@ -26,11 +26,18 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.tudelft.graphalytics</groupId>
+			<artifactId>graphalytics-core</artifactId>
+			<version>${graphalytics.version}</version>
+			<type>tar.gz</type>
+			<classifier>resources</classifier>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>nl.tudelft.graphalytics</groupId>
 			<artifactId>graphalytics-validation</artifactId>
 			<version>${graphalytics.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 		<!-- Logging framework -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>

@@ -44,11 +44,29 @@ public class PlatformLogger {
 
     protected static Level platformLogLevel = Level.INFO;
 
+    private static PrintStream console;
+
     public static void startPlatformLogging(Path fileName) {
+
+        console = System.out;
+        try {
+            File file = null;
+            file = fileName.toFile();
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(file);
+            PrintStream ps = new PrintStream(fos);
+            System.setOut(ps);
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("cannot redirect to output file");
+        }
+        System.out.println("StartTime: " + System.currentTimeMillis());
+
         Logger.getRootLogger().removeAllAppenders();
         FileAppender fa = new FileAppender();
         fa.setName("FileLogger");
-        fa.setFile(fileName.toString());
+        fa.setFile(fileName.toString() + "-graphaltyics");
         fa.setLayout(new PatternLayout("%d [%t] %-5p[%c{1} (%M(%L))] %m%n"));
         fa.setThreshold(platformLogLevel);
         fa.setAppend(true);
@@ -57,8 +75,25 @@ public class PlatformLogger {
         waitInterval(1);
     }
 
+
+//    public static void startPlatformLogging(Path fileName) {
+//        Logger.getRootLogger().removeAllAppenders();
+//        FileAppender fa = new FileAppender();
+//        fa.setName("FileLogger");
+//        fa.setFile(fileName.toString());
+//        fa.setLayout(new PatternLayout("%d [%t] %-5p[%c{1} (%M(%L))] %m%n"));
+//        fa.setThreshold(platformLogLevel);
+//        fa.setAppend(true);
+//        fa.activateOptions();
+//        Logger.getRootLogger().addAppender(fa);
+//        waitInterval(1);
+//    }
+
     public static void stopPlatformLogging() {
         Logger.getRootLogger().removeAllAppenders();
+
+        System.out.println("EndTime: " + System.currentTimeMillis());
+        System.setOut(console);
     }
 
 
@@ -70,7 +105,7 @@ public class PlatformLogger {
     }
 
     public static void stopCoreLogging() {
-        removeAppender("nl.tudelft.graphalytics");
+//        removeAppender("nl.tudelft.graphalytics");
     }
 
 
