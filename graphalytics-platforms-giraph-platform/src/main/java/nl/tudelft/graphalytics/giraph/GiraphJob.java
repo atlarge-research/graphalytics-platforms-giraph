@@ -15,6 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph;
 
+import org.apache.giraph.conf.FacebookConfiguration;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.giraph.conf.StrConfOption;
@@ -31,6 +32,10 @@ import org.apache.hadoop.util.Tool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Map;
+
+import static org.apache.giraph.conf.GiraphConstants.TRACK_JOB_PROGRESS_ON_CLIENT;
+
 /**
  * Base class for all jobs in the Giraph benchmark suite. Configures and executes
  * a Giraph job using the computation and vertex format specified by subclasses
@@ -43,16 +48,6 @@ public abstract class GiraphJob extends Configured implements Tool {
 	private static final Logger LOG = LogManager.getLogger();
 
 	/**
-	 * The configuration key for the JVM heap size of Giraph workers in megabytes.
-	 */
-	public static final String HEAP_SIZE_MB_KEY = "graphalytics.giraphjob.heap-size-mb";
-	/**
-	 * The JVM heap size of Giraph workers in megabytes.
-	 */
-	public static final IntConfOption HEAP_SIZE_MB = new IntConfOption(HEAP_SIZE_MB_KEY,
-			768, "JVM heap size of Giraph workers in megabytes");
-
-	/**
 	 * The configuration key for the Giraph worker memory size in megabytes.
 	 */
 	public static final String WORKER_MEMORY_MB_KEY = "graphalytics.giraphjob.worker-memory-mb";
@@ -60,7 +55,27 @@ public abstract class GiraphJob extends Configured implements Tool {
 	 * The Giraph worker memory size in megabytes.
 	 */
 	public static final IntConfOption WORKER_MEMORY_MB = new IntConfOption(WORKER_MEMORY_MB_KEY,
-			1024, "Giraph worker memory size in megabytes");
+			1280, "Giraph worker memory size in megabytes");
+
+	/**
+	 * The configuration key for the Giraph worker heap size in megabytes.
+	 */
+	public static final String WORKER_HEAP_MB_KEY = "graphalytics.giraphjob.worker-heap-mb";
+	/**
+	 * The Giraph worker heap size in megabytes.
+	 */
+	public static final IntConfOption WORKER_HEAP_MB = new IntConfOption(WORKER_HEAP_MB_KEY,
+			1024, "Giraph worker heap size in megabytes");
+
+	/**
+	 * The configuration key for the Giraph worker core count.
+	 */
+	public static final String WORKER_CORES_KEY = "graphalytics.giraphjob.worker-cores";
+	/**
+	 * The Giraph worker core count.
+	 */
+	public static final IntConfOption WORKER_CORES = new IntConfOption(WORKER_CORES_KEY,
+			1, "Giraph worker core count");
 
 	/**
 	 * The configuration key for the number of Giraph workers to used.
@@ -111,8 +126,9 @@ public abstract class GiraphJob extends Configured implements Tool {
 	private String outputPath;
 	private String zooKeeperAddress;
 	private int workerCount;
-	private int heapSize;
 	private int workerMemory;
+	private int workerHeap;
+	private int workerCores;
 
 	/**
 	 * @return the Giraph job output path
@@ -133,8 +149,9 @@ public abstract class GiraphJob extends Configured implements Tool {
 		}
 
 		workerCount = WORKER_COUNT.get(getConf());
-		heapSize = HEAP_SIZE_MB.get(getConf());
 		workerMemory = WORKER_MEMORY_MB.get(getConf());
+		workerHeap = WORKER_HEAP_MB.get(getConf());
+		workerCores = WORKER_CORES.get(getConf());
 		inputPath = INPUT_PATH.get(getConf());
 		outputPath = OUTPUT_PATH.get(getConf());
 		zooKeeperAddress = ZOOKEEPER_ADDRESS.get(getConf());
@@ -184,8 +201,18 @@ public abstract class GiraphJob extends Configured implements Tool {
 		// Set deployment-specific configuration from external configuration files
 		configuration.setWorkerConfiguration(workerCount, workerCount, 100.0f);
 		configuration.setZooKeeperConfiguration(zooKeeperAddress);
+
+		// Set the amount of memory and cores per mapper and allow the FacebookConfiguration to derive the correct
+		// MapReduce settings and parallelism
 		configuration.setInt("mapreduce.map.memory.mb", workerMemory);
-		configuration.set("mapreduce.map.java.opts", "-Xmx" + heapSize + "M");
+		FacebookConfiguration.MAPPER_MEMORY.set(configuration, workerHeap / 1024);
+		FacebookConfiguration.MAPPER_CORES.set(configuration, workerCores);
+		FacebookConfiguration.CONFIGURE_JAVA_OPTS.set(configuration, true);
+		new FacebookConfiguration().configure(configuration);
+		// Copy deprecated "mapred.child.java.opts" to new "mapreduce.map.java.opts"
+		configuration.set("mapreduce.map.java.opts", configuration.get("mapred.child.java.opts"));
+		// Disable job progress on client due to missing libthrift dependency
+		TRACK_JOB_PROGRESS_ON_CLIENT.set(configuration, false);
 
 		// Set algorithm-specific configuration
 		configure(configuration);

@@ -74,13 +74,17 @@ public class GiraphPlatform implements Platform {
 	 */
 	public static final String JOB_WORKERCOUNT = "giraph.job.worker-count";
 	/**
+	 * Property key for setting the memory size of each Giraph worker.
+	 */
+	public static final String JOB_MEMORYSIZE = "giraph.job.memory-size";
+	/**
 	 * Property key for setting the heap size of each Giraph worker.
 	 */
 	public static final String JOB_HEAPSIZE = "giraph.job.heap-size";
 	/**
-	 * Property key for setting the memory size of each Giraph worker.
+	 * Property key for setting the core count of each Giraph worker.
 	 */
-	public static final String JOB_MEMORYSIZE = "giraph.job.memory-size";
+	public static final String JOB_CORES = "giraph.job.worker-cores";
 	/**
 	 * Property key for the address of a ZooKeeper instance to use during the benchmark.
 	 */
@@ -196,8 +200,9 @@ public class GiraphPlatform implements Platform {
 			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(giraphConfig, ZOOKEEPERADDRESS));
 
 			transferIfSet(giraphConfig, JOB_WORKERCOUNT, jobConf, GiraphJob.WORKER_COUNT);
-			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.HEAP_SIZE_MB);
 			transferIfSet(giraphConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
+			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.WORKER_HEAP_MB);
+			transferIfSet(giraphConfig, JOB_CORES, jobConf, GiraphJob.WORKER_CORES);
 
 			GiraphJob.JOB_ID.set(jobConf, benchmark.getId());
 
