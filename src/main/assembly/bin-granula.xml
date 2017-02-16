@@ -18,6 +18,11 @@
 			<source>${project.basedir}/target/${project.artifactId}-${project.version}-default.jar</source>
 			<outputDirectory>lib</outputDirectory>
 			<destName>${project.artifactId}-${project.version}.jar</destName>
+		</file><!--Graphalytics platform driver JAR with Granula-->
+		<file>
+			<source>${project.basedir}/target/${project.artifactId}-${project.version}-granula.jar</source>
+			<outputDirectory>lib</outputDirectory>
+			<destName>${project.artifactId}-${project.version}-granula.jar</destName>
 		</file>
 	</files>
 	<fileSets>

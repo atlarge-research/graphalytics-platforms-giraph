@@ -5,20 +5,18 @@
 	<groupId>nl.tudelft.graphalytics</groupId>
 	<artifactId>graphalytics-platforms-giraph</artifactId>
 	<version>0.2-SNAPSHOT</version>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<hadoop.version>2.5.1</hadoop.version>
 		<giraph.version>1.2.0-hadoop2</giraph.version>
-		<giraph.granula.version>1.2.0-hadoop2-withGranula</giraph.granula.version>
 		<graphalytics.version>0.4-SNAPSHOT</graphalytics.version>
 		<log4j.version>2.5</log4j.version>
 	</properties>
 
 	<scm>
-		<developerConnection>scm:git:ssh://git@github.com/tudelft-atlarge/graphalytics-platforms-giraph
-		</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com/tudelft-atlarge/graphalytics-platforms-giraph</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -97,9 +95,67 @@
 	<profiles>
 		<profile>
 			<id>granula</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.giraph</groupId>
+					<artifactId>giraph-core-granula</artifactId>
+					<version>${giraph.version}</version>
+					<exclusions>
+						<exclusion>
+							<artifactId>log4j</artifactId>
+							<groupId>log4j</groupId>
+						</exclusion>
+						<exclusion>
+							<artifactId>org.slf4j</artifactId>
+							<groupId>slf4j-log4j12</groupId>
+						</exclusion>
+					</exclusions>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>with-granula</id>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<artifactSet>
+										<excludes>
+											<exclude>*:*:*:resources</exclude>
+											<exclude>org.apache.giraph:giraph-core</exclude>
+										</excludes>
+									</artifactSet>
+									<finalName>${project.artifactId}-${project.version}-granula</finalName>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>bin</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>src/main/assembly/bin-granula.xml</descriptor>
+									</descriptors>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 
@@ -124,11 +180,6 @@
 				<configuration>
 					<createDependencyReducedPom>false</createDependencyReducedPom>
 					<minimizeJar>false</minimizeJar>
-					<artifactSet>
-						<excludes>
-							<exclude>*:*:*:resources</exclude>
-						</excludes>
-					</artifactSet>
 					<filters>
 						<filter>
 							<artifact>*.*</artifact>
@@ -147,10 +198,46 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>default</id>
 						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
 						</goals>
+						<configuration>
+							<artifactSet>
+								<excludes>
+									<exclude>*:*:*:resources</exclude>
+									<exclude>org.apache.giraph:giraph-core-granula</exclude>
+								</excludes>
+							</artifactSet>
+							<finalName>${project.artifactId}-${project.version}-default</finalName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Plugin for creating distribution archives -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<finalName>graphalytics-${graphalytics.version}-giraph-${project.version}</finalName>
+					<tarLongFileMode>posix</tarLongFileMode>
+					<outputDirectory>${project.basedir}</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bin</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/bin.xml</descriptor>
+							</descriptors>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -165,30 +252,6 @@
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<pushChanges>false</pushChanges>
 				</configuration>
-			</plugin>
-
-			<!-- Plugin for creating distribution archives -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.5.3</version>
-				<executions>
-					<execution>
-						<id>bin</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<descriptors>
-								<descriptor>src/main/assembly/bin.xml</descriptor>
-							</descriptors>
-							<finalName>graphalytics-${graphalytics.version}-giraph-${project.version}</finalName>
-							<tarLongFileMode>posix</tarLongFileMode>
-							<outputDirectory>${project.basedir}</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 
 			<!-- Plugin for ensuring the presence of license information -->
