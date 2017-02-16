@@ -29,6 +29,7 @@ import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternSelector;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -114,7 +115,7 @@ public class PlatformLogger {
         Configuration config = context.getConfiguration();
 
         String pattern = "%d [%t] %-5p[%c{1} (%M(%L))] %m%n";
-        Layout layout = org.apache.logging.log4j.core.layout.PatternLayout.createLayout(pattern, config, null,
+        Layout layout = org.apache.logging.log4j.core.layout.PatternLayout.createLayout(pattern, null, config, null,
                 Charset.defaultCharset(), true, false, null, null);
 
         ConsoleAppender consoleAppender = ConsoleAppender.createAppender(

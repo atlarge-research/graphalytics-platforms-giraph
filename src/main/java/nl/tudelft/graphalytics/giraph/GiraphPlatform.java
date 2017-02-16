@@ -21,7 +21,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import nl.tudelft.granula.archiver.PlatformArchive;
+import nl.tudelft.granula.modeller.job.JobModel;
+import nl.tudelft.granula.modeller.platform.Giraph;
 import nl.tudelft.graphalytics.BenchmarkMetrics;
+import nl.tudelft.graphalytics.domain.*;
+import nl.tudelft.graphalytics.granula.GranulaAwarePlatform;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
@@ -32,15 +37,9 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nl.tudelft.graphalytics.Platform;
 import nl.tudelft.graphalytics.PlatformExecutionException;
 import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
 import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
-import nl.tudelft.graphalytics.domain.Algorithm;
-import nl.tudelft.graphalytics.domain.Benchmark;
-import nl.tudelft.graphalytics.domain.Graph;
-import nl.tudelft.graphalytics.domain.NestedConfiguration;
-import nl.tudelft.graphalytics.domain.PlatformBenchmarkResult;
 import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
 import nl.tudelft.graphalytics.giraph.algorithms.cdlp.CommunityDetectionLPJob;
 import nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelJob;
@@ -48,6 +47,7 @@ import nl.tudelft.graphalytics.giraph.algorithms.lcc.LocalClusteringCoefficientJ
 import nl.tudelft.graphalytics.giraph.algorithms.pr.PageRankJob;
 import nl.tudelft.graphalytics.giraph.algorithms.sssp.SingleSourceShortestPathJob;
 import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJob;
+import org.json.simple.JSONObject;
 
 /**
  * Entry point of the Graphalytics benchmark for Giraph. Provides the platform
@@ -56,7 +56,7 @@ import nl.tudelft.graphalytics.giraph.algorithms.wcc.WeaklyConnectedComponentsJo
  *
  * @author Tim Hegeman
  */
-public class GiraphPlatform implements Platform {
+public class GiraphPlatform implements GranulaAwarePlatform {
 	private static final Logger LOG = LogManager.getLogger();
 
 	/**
@@ -289,6 +289,39 @@ public class GiraphPlatform implements Platform {
 			return NestedConfiguration.fromExternalConfiguration(configuration, GIRAPH_PROPERTIES_FILE);
 		} catch (ConfigurationException ex) {
 			return NestedConfiguration.empty();
+		}
+	}
+
+	@Override
+	public void preBenchmark(Benchmark benchmark, java.nio.file.Path path) {
+		PlatformLogger.stopCoreLogging();
+		LOG.info(String.format("Logging path at: %s", path.resolve("platform").resolve("driver.logs")));
+		PlatformLogger.startPlatformLogging(path.resolve("platform").resolve("driver.logs"));
+	}
+
+	@Override
+	public void postBenchmark(Benchmark benchmark, java.nio.file.Path path) {
+		PlatformLogger.collectYarnLogs(path);
+		PlatformLogger.stopPlatformLogging();
+		PlatformLogger.startCoreLogging();
+	}
+
+	@Override
+	public JobModel getJobModel() {
+		return new JobModel(new Giraph());
+	}
+
+
+	@Override
+	public void enrichMetrics(BenchmarkResult benchmarkResult, java.nio.file.Path arcDirectory) {
+		try {
+			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
+			JSONObject processGraph = platformArchive.operation("ProcessGraph");
+			Integer procTime = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
+			BenchmarkMetrics metrics = benchmarkResult.getMetrics();
+			metrics.setProcessingTime(procTime);
+		} catch(Exception e) {
+			LOG.error("Failed to enrich metrics.");
 		}
 	}
 
