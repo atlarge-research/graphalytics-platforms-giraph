@@ -10,7 +10,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<hadoop.version>2.5.1</hadoop.version>
-		<giraph.version>1.2.0-hadoop2</giraph.version>
+		<platform.name>giraph</platform.name>
+		<platform.version>1.2.0-hadoop2</platform.version>
 		<graphalytics.version>0.4-SNAPSHOT</graphalytics.version>
 		<log4j.version>2.5</log4j.version>
 	</properties>
@@ -59,7 +60,7 @@
 		<dependency>
 			<groupId>org.apache.giraph</groupId>
 			<artifactId>giraph-core</artifactId>
-			<version>${giraph.version}</version>
+			<version>${platform.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j</artifactId>
@@ -99,7 +100,7 @@
 				<dependency>
 					<groupId>org.apache.giraph</groupId>
 					<artifactId>giraph-core-granula</artifactId>
-					<version>${giraph.version}</version>
+					<version>${platform.version}</version>
 					<exclusions>
 						<exclusion>
 							<artifactId>log4j</artifactId>
@@ -222,7 +223,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.5.3</version>
 				<configuration>
-					<finalName>graphalytics-${graphalytics.version}-giraph-${project.version}</finalName>
+					<finalName>graphalytics-${graphalytics.version}-${platform.name}-${project.version}</finalName>
 					<tarLongFileMode>posix</tarLongFileMode>
 					<outputDirectory>${project.basedir}</outputDirectory>
 				</configuration>

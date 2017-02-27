@@ -11,7 +11,7 @@
 		<file>
 			<source>${project.basedir}/README.md</source>
 			<outputDirectory>.</outputDirectory>
-			<destName>README-graphalytics-giraph.md</destName>
+			<destName>README-graphalytics-${platform.name}.md</destName>
 		</file>
 		<!--Graphalytics platform driver JAR-->
 		<file>
