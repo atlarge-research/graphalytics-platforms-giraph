@@ -40,7 +40,7 @@ export platform="giraph"
 
 
 # Set Library jar
-export LIBRARY_JAR=`ls lib/graphalytics-platforms-giraph-[0-9.]*.jar`
+export LIBRARY_JAR=`ls lib/graphalytics-platforms-giraph-[0-9.]*-default.jar`
 GRANULA_ENABLED=$(grep -E "^benchmark.run.granula.enabled[	 ]*[:=]" $config/granula.properties | sed 's/benchmark.run.granula.enabled[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
 if [ "$GRANULA_ENABLED" = "true" ] ; then
  if ! find lib -name "graphalytics-platforms-giraph-*-granula.jar" | grep -q '.'; then
