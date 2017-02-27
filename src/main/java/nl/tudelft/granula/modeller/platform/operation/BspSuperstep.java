@@ -17,7 +17,9 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.platform.operation.RealtimeOperationModel;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
@@ -26,13 +28,13 @@ import java.util.ArrayList;
 public class BspSuperstep extends RealtimeOperationModel {
 
     public BspSuperstep() {
-        super(Type.Bsp, Type.Superstep);
+        super(Type.Worker, Type.Superstep);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.ProcessGraph));
-
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addLinkingRule(new EmptyLinking());
         String summary = "BspSuperstep.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
 

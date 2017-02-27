@@ -18,24 +18,21 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-import java.util.ArrayList;
+public class WorkerPostApplication extends RealtimeOperationModel {
 
-public class OffloadPartition extends RealtimeOperationModel {
-
-    public OffloadPartition() {
-        super(Type.Worker, Type.OffloadPartition);
+    public WorkerPostApplication() {
+        super(Type.Worker, Type.PostApplication);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.OffloadGraph));
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Postpare));
+//        addLinkingRule(new EmptyLinking());
 
-        String summary = "Offload partition.";
+        String summary = "PostApplication.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-
-
     }
-
 }

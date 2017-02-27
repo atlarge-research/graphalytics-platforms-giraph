@@ -18,28 +18,24 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.DurationDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobEndTimeDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobStartTimeDerivation;
+import nl.tudelft.granula.modeller.rule.linking.AdvancedIdentifierParentLinking;
 import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
 
-public class GiraphJob extends AbstractOperationModel {
+public class WorkerThreadParallelCompute extends RealtimeOperationModel {
 
-    public GiraphJob() {
-        super(Type.Giraph, Type.Job);
+    public WorkerThreadParallelCompute() {
+        super(Type.WorkerThread, Type.ParallelCompute);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new EmptyLinking());
-        addInfoDerivation(new JobStartTimeDerivation(1));
-        addInfoDerivation(new JobEndTimeDerivation(1));
-        addInfoDerivation(new DurationDerivation(2));
 
-        String summary = "A Giraph Job.";
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addLinkingRule(new AdvancedIdentifierParentLinking(Type.Worker, Type.Ladder, Type.Compute, Type.Equal));
+//        addLinkingRule(new EmptyLinking());
+
+        String summary = "ParallelCompute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-
-
     }
-
 }

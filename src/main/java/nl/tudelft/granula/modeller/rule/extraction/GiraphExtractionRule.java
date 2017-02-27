@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by wing on 21-8-15.
@@ -27,13 +29,6 @@ public class GiraphExtractionRule extends ExtractionRule {
         return false;
     }
 
-    public String generateText(String infoName, String infoValue, String actorType, String actorId, String missionType,
-                               String missionId, String operationUuid) {
-        String text = String.format("GRANULA - InfoName:%s InfoValue:%s ActorType:%s ActorId:%s MissionType:%s MissionId:%s RecordUuid:%s OperationUuid:%s Timestamp:%s\n",
-                infoName, infoValue, actorType, actorId, missionType,
-                missionId, UuidGenerator.getRandomUUID(), operationUuid, System.currentTimeMillis());
-        return text;
-    }
 
     public List<Log> extractLogFromInputStream(DataStream dataStream) {
 
@@ -50,33 +45,12 @@ public class GiraphExtractionRule extends ExtractionRule {
                 lineCount++;
 
                 if(line.contains("GRANULA") ) {
-
-                    if(line.contains("Giraph") && line.contains("Job")) {
-                        continue;
-                    }
-
-                    Log log = extractRecord(line);
-
-                    LogLocation trace = new LogLocation();
-
-                    String codeLocation;
-                    String logFilePath;
-                    if(false) { //TODO if supported
-                        codeLocation = line.split("\\) - Granular")[0].split(" \\(")[1];
-                    }
-
-                    codeLocation = "unspecified";
-                    logFilePath = "unspecified";
-
-                    trace.setLocation(logFilePath, lineCount, codeLocation);
-                    log.setLocation(trace);
-
-                    granularlogList.add(log);
+                    parseGranulaLog(line, lineCount, granularlogList);
+                } else if(line.contains("OperationLog")) {
+                    parseGrade10Log(line, lineCount, granularlogList);
                 }
             }
-
             br.close();
-
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -84,6 +58,81 @@ public class GiraphExtractionRule extends ExtractionRule {
             e.printStackTrace();
         }
         return granularlogList;
+    }
+
+
+    private void parseGranulaLog(String line, int lineCount, List<Log> granularlogList) {
+
+        // Skip top-level operation -> it is defined by Grpahalytics benchmark itself, not the platform.
+        if (line.contains("Giraph") && line.contains("Job")) {
+
+        } else {
+
+            Log log = extractRecord(line);
+
+            LogLocation trace = new LogLocation();
+
+            String codeLocation;
+            String logFilePath;
+            codeLocation = "unspecified";
+            logFilePath = "unspecified";
+
+            trace.setLocation(logFilePath, lineCount, codeLocation);
+            log.setLocation(trace);
+
+            granularlogList.add(log);
+        }
+
+    }
+
+
+    private void parseGrade10Log(String line, int lineCount, List<Log> granularlogList) {
+
+            if(line.contains("ComputeThread")) {
+                String infoType = "";
+                if(line.contains("event=start")) {
+                    infoType="StartTime";
+                } else if(line.contains("event=end")) {
+                    infoType="EndTime";
+                }
+
+                Pattern regex = Pattern.compile(".*time=(\\d*).*worker=(\\d*).*superstep=(\\d*).*thread=compute-(\\d*)");
+                Matcher matcher = regex.matcher(line);
+                matcher.find();
+                String time = matcher.group(1);
+                String worker = matcher.group(2);
+                String superstep = matcher.group(3);
+                String thread = matcher.group(4);
+
+                line = generateText(infoType, time, "WorkerThread", worker + "-" + thread,  "ParallelCompute", superstep, "6796432509645137309");
+//                line = String.format("askdjfhsd - GRANULA InfoName:%s InfoValue:%s Timestamp:1487360899995 " +
+//                                "RecordUuid:7202475161608429203 OperationUuid:6796432509645137309 ActorType:WorkerThread ActorId:%s MissionType:ParallelCompute MissionId:%s",
+//                        infoType, time, worker + "-" + thread, superstep);
+
+
+                Log log = extractRecord(line);
+
+                LogLocation trace = new LogLocation();
+
+                String codeLocation;
+                String logFilePath;
+                codeLocation = "unspecified";
+                logFilePath = "unspecified";
+
+                trace.setLocation(logFilePath, lineCount, codeLocation);
+                log.setLocation(trace);
+
+                granularlogList.add(log);
+            }
+
+    }
+
+    private String generateText(String infoName, String infoValue, String actorType, String actorId, String missionType,
+                               String missionId, String operationUuid) {
+        String text = String.format("GRANULA - InfoName:%s InfoValue:%s ActorType:%s ActorId:%s MissionType:%s MissionId:%s RecordUuid:%s OperationUuid:%s Timestamp:%s\n",
+                infoName, infoValue, actorType, actorId, missionType,
+                missionId, UuidGenerator.getRandomUUID(), operationUuid, System.currentTimeMillis());
+        return text;
     }
 
 

@@ -18,28 +18,22 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.DurationDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobEndTimeDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobStartTimeDerivation;
 import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
+import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class GiraphJob extends AbstractOperationModel {
+public class WorkerCompute extends RealtimeOperationModel {
 
-    public GiraphJob() {
-        super(Type.Giraph, Type.Job);
+    public WorkerCompute() {
+        super(Type.Worker, Type.Compute);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new EmptyLinking());
-        addInfoDerivation(new JobStartTimeDerivation(1));
-        addInfoDerivation(new JobEndTimeDerivation(1));
-        addInfoDerivation(new DurationDerivation(2));
 
-        String summary = "A Giraph Job.";
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
+        String summary = "Compute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-
-
     }
-
 }

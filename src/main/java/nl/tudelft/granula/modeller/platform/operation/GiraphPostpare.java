@@ -24,28 +24,22 @@ import nl.tudelft.granula.modeller.rule.derivation.time.FilialEndTimeDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.time.FilialStartTimeDerivation;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-import java.util.ArrayList;
+public class GiraphPostpare extends AbstractOperationModel {
 
-public class OffloadGraph extends AbstractOperationModel {
-
-    public OffloadGraph() {
-        super(Type.Giraph, Type.OffloadGraph);
+    public GiraphPostpare() {
+        super(Type.Giraph, Type.Postpare);
     }
 
     public void loadRules() {
         super.loadRules();
-
         addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
+
         addInfoDerivation(new FilialStartTimeDerivation(4));
         addInfoDerivation(new FilialEndTimeDerivation(4));
         addInfoDerivation(new DurationDerivation(5));
         this.addInfoDerivation(new FilialCompletenessDerivation(1));
 
-        String summary = "OffloadGraph.";
+        String summary = "Postpare.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-
-
     }
-
-
 }

@@ -23,19 +23,26 @@ public class Type extends BasicType {
     // actor
     public static String Giraph = "Giraph";
     public static String Worker = "Worker";
+    public static String WorkerThread = "WorkerThread";
 
     // mission
     public static String Job = "Job";
-    public static String LoadGraph = "LoadGraph";
-    public static String OffloadPartition = "OffloadPartition";
-    public static String OffloadGraph = "OffloadGraph";
-    public static String ProcessGraph = "ProcessGraph";
+    public static String Setup = "Setup";
+    public static String PostCompute = "PostCompute";
+    public static String PreCompute = "PreCompute";
+    public static String Postpare = "Postpare";
+    public static String Prepare = "Prepare";
+    public static String Execute = "Execute";
+    public static String PreApplication = "PreApplication";
+    public static String PostApplication = "PostApplication";
+    public static String Compute = "Compute";
+    public static String LocalSuperstep = "LocalSuperstep";
+    public static String Superstep = "Superstep";
+    public static String ParallelCompute = "ParallelCompute";
+    public static String VertexCompute = "VertexCompute";
 
     // info
-    public static String StartTime = "StartTime";
-    public static String EndTime = "EndTime";
-    public static String Bsp = "Bsp";
-    public static String Superstep = "Superstep";
 
-
+    // others
+    public static String Ladder = "Ladder";
 }

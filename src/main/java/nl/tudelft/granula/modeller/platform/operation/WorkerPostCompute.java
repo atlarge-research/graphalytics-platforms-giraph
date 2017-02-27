@@ -17,32 +17,26 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.ColorDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
-import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
-import java.util.ArrayList;
+public class WorkerPostCompute extends RealtimeOperationModel {
 
-public class ProcessGraph extends RealtimeOperationModel {
-
-    public ProcessGraph() {
-        super(Type.Giraph, Type.ProcessGraph);
+    public WorkerPostCompute() {
+        super(Type.Worker, Type.PostCompute);
     }
 
     public void loadRules() {
         super.loadRules();
 
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
 
 
-        String summary = "ProcessGraph.";
+        String summary = "PostCompute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-
-        addVisualDerivation(new TableVisualization(
-                1, "MainInfos", new ArrayList<String>() {{
-//            add("StartTime");
-//            add("EndTime");
-        }}));
     }
-
 }

@@ -17,29 +17,29 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.FilialLongAggregationDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.DurationDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobEndTimeDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.JobStartTimeDerivation;
 import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
-public class GiraphJob extends AbstractOperationModel {
+import java.util.Arrays;
 
-    public GiraphJob() {
-        super(Type.Giraph, Type.Job);
+public class WorkerLocalSuperstep extends RealtimeOperationModel {
+
+    public WorkerLocalSuperstep() {
+        super(Type.Worker, Type.LocalSuperstep);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new EmptyLinking());
-        addInfoDerivation(new JobStartTimeDerivation(1));
-        addInfoDerivation(new JobEndTimeDerivation(1));
-        addInfoDerivation(new DurationDerivation(2));
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addInfoDerivation(new FilialLongAggregationDerivation(3, "Compute", "Duration", "ComputeTime"));
+//        addLinkingRule(new EmptyLinking());
 
-        String summary = "A Giraph Job.";
+        String summary = "LocalSuperstep.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
 
-
+        addVisualDerivation(new TableVisualization(1, "Informations", Arrays.asList("ComputeTime")));
     }
-
 }

@@ -20,19 +20,19 @@ import java.nio.file.Paths;
 public class ModelTester {
     public static void main(String[] args) {
         String inputPath = "/home/wlngai/Workstation/Exec/Granula/debug/archiver/giraph/log";
-        String driverLogPath = "/home/wlngai/Workstation/Exec/Granula/debug/archiver/giraph/log/execution/execution-log.js";
         String outputPath = "/home/wlngai/Workstation/Exec/Granula/debug/archiver/giraph/arc";
 
-
-        Execution execution = (Execution) JsonUtil.fromJson(FileUtil.readFile(Paths.get(driverLogPath)), Execution.class);
+        Execution execution = (Execution) JsonUtil.fromJson(FileUtil.readFile(
+                Paths.get(inputPath + "/execution/execution-log.js")), Execution.class);
         execution.setLogPath(inputPath);
-        execution.setEndTime(System.currentTimeMillis());
+        // Set end time in "log directory"/execution/execution-log.js, or the end time is set as the current time.
+//        execution.setEndTime(System.currentTimeMillis());
         execution.setArcPath(outputPath);
         JobModel jobModel = new JobModel(GranulaPlugin.getPlatformModel(execution.getPlatform()));
 
         GranulaExecutor granulaExecutor = new GranulaExecutor();
+        granulaExecutor.setEnvEnabled(false);
         granulaExecutor.setExecution(execution);
         granulaExecutor.buildJobArchive(jobModel);
-
     }
 }

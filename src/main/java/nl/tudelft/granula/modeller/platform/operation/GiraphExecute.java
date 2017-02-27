@@ -17,26 +17,34 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.FilialCompletenessDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.FilialLongAggregationDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.*;
+import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
-public class LoadGraph extends RealtimeOperationModel {
+public class GiraphExecute extends AbstractOperationModel {
 
-    public LoadGraph() {
-        super(Type.Giraph, Type.LoadGraph);
+    public GiraphExecute() {
+        super(Type.Giraph, Type.Execute);
     }
 
     public void loadRules() {
         super.loadRules();
-
         addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
 
-        String summary = "LoadGraph.";
+        addInfoDerivation(new FilialStartTimeDerivation(4));
+        addInfoDerivation(new FilialEndTimeDerivation(4));
+        addInfoDerivation(new DurationDerivation(5));
+        addInfoDerivation(new FilialCompletenessDerivation(1));
+        addInfoDerivation(new FilialLongAggregationDerivation(4, "LocalSuperstep", "ComputeTime", "ComputeTime"));
+        String summary = "Execute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
 
-
+        addVisualDerivation(new TableVisualization(1, "Informations", Arrays.asList("ComputeTime")));
     }
-
 }
