@@ -26,6 +26,7 @@ import nl.tudelft.granula.modeller.job.JobModel;
 import nl.tudelft.granula.modeller.platform.Giraph;
 import nl.tudelft.graphalytics.BenchmarkMetrics;
 import nl.tudelft.graphalytics.domain.*;
+import nl.tudelft.graphalytics.giraph.log.JobLogger;
 import nl.tudelft.graphalytics.granula.GranulaAwarePlatform;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -294,16 +295,16 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 	@Override
 	public void preBenchmark(Benchmark benchmark, java.nio.file.Path path) {
-		PlatformLogger.stopCoreLogging();
+		JobLogger.stopCoreLogging();
 		LOG.info(String.format("Logging path at: %s", path.resolve("platform").resolve("driver.logs")));
-		PlatformLogger.startPlatformLogging(path.resolve("platform").resolve("driver.logs"));
+		JobLogger.startPlatformLogging(path.resolve("platform").resolve("driver.logs"));
 	}
 
 	@Override
 	public void postBenchmark(Benchmark benchmark, java.nio.file.Path path) {
-		PlatformLogger.collectYarnLogs(path);
-		PlatformLogger.stopPlatformLogging();
-		PlatformLogger.startCoreLogging();
+		JobLogger.collectYarnLogs(path);
+		JobLogger.stopPlatformLogging();
+		JobLogger.startCoreLogging();
 	}
 
 	@Override

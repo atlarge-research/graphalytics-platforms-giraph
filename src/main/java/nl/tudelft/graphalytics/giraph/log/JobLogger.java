@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.tudelft.graphalytics.giraph;
+package nl.tudelft.graphalytics.giraph.log;
 
 import org.apache.hadoop.yarn.client.cli.LogsCLI;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by wlngai on 9-9-15.
  */
-public class PlatformLogger {
+public class JobLogger {
 
     protected static Level platformLogLevel = Level.INFO;
 
