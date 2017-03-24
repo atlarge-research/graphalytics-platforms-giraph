@@ -24,8 +24,12 @@ import java.util.Map;
 import nl.tudelft.granula.archiver.PlatformArchive;
 import nl.tudelft.granula.modeller.job.JobModel;
 import nl.tudelft.granula.modeller.platform.Giraph;
-import nl.tudelft.graphalytics.BenchmarkMetrics;
-import nl.tudelft.graphalytics.domain.*;
+import nl.tudelft.graphalytics.report.result.BenchmarkMetrics;
+import nl.tudelft.graphalytics.domain.algorithms.Algorithm;
+import nl.tudelft.graphalytics.report.result.BenchmarkResult;
+import nl.tudelft.graphalytics.domain.benchmark.BenchmarkRun;
+import nl.tudelft.graphalytics.report.result.PlatformBenchmarkResult;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.giraph.log.JobLogger;
 import nl.tudelft.graphalytics.granula.GranulaAwarePlatform;
 import org.apache.commons.configuration.ConfigurationException;
@@ -38,7 +42,7 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nl.tudelft.graphalytics.PlatformExecutionException;
+import nl.tudelft.graphalytics.execution.PlatformExecutionException;
 import nl.tudelft.graphalytics.configuration.ConfigurationUtil;
 import nl.tudelft.graphalytics.configuration.InvalidConfigurationException;
 import nl.tudelft.graphalytics.giraph.algorithms.bfs.BreadthFirstSearchJob;
@@ -129,7 +133,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	public void uploadGraph(Graph graph) throws Exception {
 		LOG.info("Uploading graph \"{}\" to HDFS", graph.getName());
 
-		String uploadPath = Paths.get(hdfsDirectory, getName(), "input", graph.getName()).toString();
+		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", graph.getName()).toString();
 
 		// Upload the graph to HDFS
 		FileSystem fs = FileSystem.get(new Configuration());
@@ -146,13 +150,18 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		pathsOfGraphs.put(graph.getName(), uploadPath);
 	}
 
+	@Override
+	public void prepare(BenchmarkRun benchmarkRun) {
+
+	}
+
 	private void setupGraph(Graph graph) {
-		String uploadPath = Paths.get(hdfsDirectory, getName(), "input", graph.getName()).toString();
+		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", graph.getName()).toString();
 		pathsOfGraphs.put(graph.getName(), uploadPath);
 	}
 
 	@Override
-	public PlatformBenchmarkResult executeAlgorithmOnGraph(Benchmark benchmark) throws PlatformExecutionException {
+	public PlatformBenchmarkResult execute(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		Graph graph = benchmark.getGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
@@ -167,22 +176,21 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			GiraphJob job;
 			switch (algorithm) {
 				case BFS:
-					job = new BreadthFirstSearchJob(parameters, graph.getGraphFormat());
+					job = new BreadthFirstSearchJob(parameters, graph);
 					break;
 				case CDLP:
-					job = new CommunityDetectionLPJob(parameters, graph.getGraphFormat());
+					job = new CommunityDetectionLPJob(parameters, graph);
 					break;
 				case WCC:
-					job = new WeaklyConnectedComponentsJob(graph.getGraphFormat());
+					job = new WeaklyConnectedComponentsJob(graph);
 					break;
 				case FFM:
-					job = new ForestFireModelJob(parameters, graph.getGraphFormat());
-					break;
+					job = new ForestFireModelJob(parameters, graph);
 				case LCC:
-					job = new LocalClusteringCoefficientJob(graph.getGraphFormat());
+					job = new LocalClusteringCoefficientJob(graph);
 					break;
 				case PR:
-					job = new PageRankJob(parameters, graph.getGraphFormat());
+					job = new PageRankJob(parameters, graph);
 					break;
 				case SSSP:
 					job = new SingleSourceShortestPathJob(parameters, graph);
@@ -192,7 +200,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			}
 
 			// Create the job configuration using the Giraph properties file
-			String hdfsOutputPath = Paths.get(hdfsDirectory, getName(), "output",
+			String hdfsOutputPath = Paths.get(hdfsDirectory, getPlatformName(), "output",
 					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + graph.getName()).toString();
 			Configuration jobConf = new Configuration();
 
@@ -215,7 +223,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			if(benchmark.isOutputRequired()){
 					FileSystem fs = FileSystem.get(new Configuration());
-					fs.copyToLocalFile(false, new Path(hdfsOutputPath), new Path(benchmark.getOutputPath()), true);
+					fs.copyToLocalFile(false, new Path(hdfsOutputPath),
+							new Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
 					fs.close();
 			}
 			deleteOutput(hdfsOutputPath);
@@ -228,7 +237,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
 
-		return new PlatformBenchmarkResult(NestedConfiguration.empty());
+		return new PlatformBenchmarkResult();
 	}
 
 	private void deleteOutput(String outputPath) {
@@ -273,39 +282,34 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public BenchmarkMetrics retrieveMetrics() {
+	public BenchmarkMetrics extractMetrics() {
 		return new BenchmarkMetrics();
 	}
 
 	@Override
-	public String getName() {
+	public String getPlatformName() {
 		return "giraph";
 	}
 
-	@Override
-	public NestedConfiguration getPlatformConfiguration() {
-		try {
-			org.apache.commons.configuration.Configuration configuration =
-					new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
-			return NestedConfiguration.fromExternalConfiguration(configuration, GIRAPH_PROPERTIES_FILE);
-		} catch (ConfigurationException ex) {
-			return NestedConfiguration.empty();
-		}
-	}
 
 	@Override
-	public void preBenchmark(Benchmark benchmark, java.nio.file.Path path) {
+	public void preprocess(BenchmarkRun benchmark) {
 		JobLogger.stopCoreLogging();
-		LOG.info(String.format("Logging path at: %s", path.resolve("platform").resolve("driver.logs")));
-		JobLogger.startPlatformLogging(path.resolve("platform").resolve("driver.logs"));
+		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
+		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
 	}
 
 	@Override
-	public void postBenchmark(Benchmark benchmark, java.nio.file.Path path) {
-		JobLogger.collectYarnLogs(path);
+	public void postprocess(BenchmarkRun benchmark) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
 	}
+
+	@Override
+	public void cleanup(BenchmarkRun benchmark) {
+		JobLogger.collectYarnLogs(benchmark.getLogDir());
+	}
+
 
 	@Override
 	public JobModel getJobModel() {

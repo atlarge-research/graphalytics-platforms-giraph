@@ -17,6 +17,7 @@ package nl.tudelft.graphalytics.giraph.algorithms.lcc;
 
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
@@ -26,7 +27,6 @@ import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
@@ -38,21 +38,21 @@ import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
  */
 public class LocalClusteringCoefficientJob extends GiraphJob {
 
-	private GraphFormat graphFormat;
+	private Graph graph;
 
 	/**
 	 * Constructs a statistics (LCC) job with a graph format specification.
 	 *
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph format specification
 	 */
-	public LocalClusteringCoefficientJob(GraphFormat graphFormat) {
-		this.graphFormat = graphFormat;
+	public LocalClusteringCoefficientJob(Graph graph) {
+		this.graph = graph;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return (graphFormat.isDirected() ?
+		return (graph.isDirected() ?
 				DirectedLocalClusteringCoefficientComputation.class :
 				UndirectedLocalClusteringCoefficientComputation.class);
 	}
@@ -72,7 +72,7 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

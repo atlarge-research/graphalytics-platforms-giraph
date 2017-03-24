@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.bfs;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.domain.algorithms.BreadthFirstSearchParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
@@ -40,19 +40,19 @@ import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TY
 public class BreadthFirstSearchJob extends GiraphJob {
 
 	private BreadthFirstSearchParameters parameters;
-	private GraphFormat graphFormat;
+	private Graph graph;
 
 	/**
 	 * Constructs a breadth-first-search job with a BFSParameters object containing
 	 * graph-specific parameters, and a graph format specification
 	 *
 	 * @param parameters  the graph-specific BFS parameters
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph format specification
 	 */
-	public BreadthFirstSearchJob(Object parameters, GraphFormat graphFormat) {
+	public BreadthFirstSearchJob(Object parameters, Graph graph) {
 		assert (parameters instanceof BreadthFirstSearchParameters);
 		this.parameters = (BreadthFirstSearchParameters)parameters;
-		this.graphFormat = graphFormat;
+		this.graph = graph;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -76,7 +76,7 @@ public class BreadthFirstSearchJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

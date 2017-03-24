@@ -9,11 +9,12 @@
 		<!--</File>-->
 	</Appenders>
 	<Loggers>
-		<Root level="DEBUG">
+		<Root level="INFO">
 			<!--<AppenderRef ref="File" />-->
 			<AppenderRef ref="Console"/>
 		</Root>
 		<Logger name="org.apache" level="OFF"/>
 		<Logger name="org.thymeleaf" level="OFF"/>
+		<Logger name="client.RMProxy" level="OFF"/>
 	</Loggers>
 </Configuration>

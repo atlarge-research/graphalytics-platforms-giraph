@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.pr;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.domain.algorithms.PageRankParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
@@ -41,19 +41,19 @@ import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TY
 public class PageRankJob extends GiraphJob {
 
 	private final PageRankParameters parameters;
-	private final GraphFormat graphFormat;
+	private final Graph graph;
 
 	/**
 	 * Constructs a PageRank job with a PageRankParameters object containing graph-specific parameters,
 	 * and a graph format specification
 	 *
 	 * @param parameters  the graph-specific PageRank parameters
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph format specification
 	 */
-	public PageRankJob(Object parameters, GraphFormat graphFormat) {
+	public PageRankJob(Object parameters, Graph graph) {
 		assert (parameters instanceof PageRankParameters);
 		this.parameters = (PageRankParameters)parameters;
-		this.graphFormat = graphFormat;
+		this.graph = graph;
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class PageRankJob extends GiraphJob {
 
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

@@ -67,7 +67,7 @@ public class JobLogger {
         Logger.getRootLogger().removeAllAppenders();
         FileAppender fa = new FileAppender();
         fa.setName("FileLogger");
-        fa.setFile(fileName.toString() + "-graphaltyics");
+        fa.setFile(fileName.toString() + "-graphalytics");
         fa.setLayout(new PatternLayout("%d [%t] %-5p[%c{1} (%M(%L))] %m%n"));
         fa.setThreshold(platformLogLevel);
         fa.setAppend(true);
@@ -194,7 +194,7 @@ public class JobLogger {
     }
 
     public static void collectYarnLogs(Path logDataPath) {
-        List<String> appIds = getYarnAppIds(logDataPath.resolve("platform").resolve("driver.logs"));
+        List<String> appIds = getYarnAppIds(logDataPath.resolve("platform").resolve("driver.logs-graphalytics"));
         for (String appId : appIds) {
             collectYarnLog(appId, logDataPath + "/platform/yarn" + appId + ".logs");
         }

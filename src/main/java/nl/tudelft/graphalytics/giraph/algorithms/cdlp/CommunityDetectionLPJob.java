@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.cdlp;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.domain.algorithms.CommunityDetectionLPParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFormat;
@@ -39,25 +39,25 @@ import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TY
 public class CommunityDetectionLPJob extends GiraphJob {
 
 	private CommunityDetectionLPParameters parameters;
-	private GraphFormat graphFormat;
+	private Graph graph;
 
 	/**
 	 * Constructs a community detection job with a CDParameters object containing
 	 * graph-specific parameters, and a graph format specification
 	 *
 	 * @param parameters  the graph-specific CDLP parameters
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph format specification
 	 */
-	public CommunityDetectionLPJob(Object parameters, GraphFormat graphFormat) {
+	public CommunityDetectionLPJob(Object parameters, Graph graph) {
 		assert parameters instanceof CommunityDetectionLPParameters;
 		this.parameters = (CommunityDetectionLPParameters)parameters;
-		this.graphFormat = graphFormat;
+		this.graph = graph;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedCommunityDetectionLPComputation.class :
 				UndirectedCommunityDetectionLPComputation.class;
 	}
@@ -65,7 +65,7 @@ public class CommunityDetectionLPJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends VertexInputFormat> getVertexInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				CommunityDetectionLPVertexInputFormat.Directed.class :
 				CommunityDetectionLPVertexInputFormat.Undirected.class;
 	}
@@ -79,7 +79,7 @@ public class CommunityDetectionLPJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedCommunityDetectionLPEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

@@ -15,7 +15,7 @@
  */
 package nl.tudelft.graphalytics.giraph.algorithms.ffm;
 
-import nl.tudelft.graphalytics.domain.GraphFormat;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.domain.algorithms.ForestFireModelParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
@@ -37,25 +37,25 @@ import static nl.tudelft.graphalytics.giraph.algorithms.ffm.ForestFireModelConfi
 public class ForestFireModelJob extends GiraphJob {
 
 	private ForestFireModelParameters parameters;
-	private GraphFormat graphFormat;
+	private Graph graph;
 
 	/**
 	 * Constructs a forest fire model job with a EVOParameters object containing
 	 * graph-specific parameters, and a graph format specification
 	 *
 	 * @param parameters  the graph-specific FFM parameters
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph specification
 	 */
-	public ForestFireModelJob(Object parameters, GraphFormat graphFormat) {
+	public ForestFireModelJob(Object parameters, Graph graph) {
 		assert (parameters instanceof ForestFireModelParameters);
 		this.parameters = (ForestFireModelParameters)parameters;
-		this.graphFormat = graphFormat;
+		this.graph = graph;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return (graphFormat.isDirected() ?
+		return (graph.isDirected() ?
 				DirectedForestFireModelComputation.class :
 				UndirectedForestFireModelComputation.class);
 	}
@@ -75,7 +75,7 @@ public class ForestFireModelJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

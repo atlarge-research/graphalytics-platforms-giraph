@@ -219,7 +219,7 @@ public abstract class GiraphJob extends Configured implements Tool {
 
 		// Create the Giraph job
 		org.apache.giraph.job.GiraphJob job = new org.apache.giraph.job.GiraphJob(
-				configuration, "Graphalytics: " + getClass().getSimpleName());
+				configuration, "GraphalyticsBenchmark: " + getClass().getSimpleName());
 		// Launch it
 		LOG.debug("- Starting Giraph job");
 		return job.run(false) ? 0 : -1;

@@ -27,7 +27,7 @@ import org.apache.giraph.io.VertexInputFormat;
 import org.apache.giraph.io.VertexOutputFormat;
 import org.apache.giraph.io.formats.IdWithValueTextOutputFormat;
 
-import nl.tudelft.graphalytics.domain.Graph;
+import nl.tudelft.graphalytics.domain.graph.Graph;
 import nl.tudelft.graphalytics.domain.algorithms.SingleSourceShortestPathsParameters;
 import nl.tudelft.graphalytics.giraph.GiraphJob;
 import nl.tudelft.graphalytics.giraph.io.DirectedLongDoubleTextEdgeInputFormat;
@@ -41,19 +41,19 @@ import nl.tudelft.graphalytics.giraph.io.UndirectedLongDoubleTextEdgeInputFormat
 public class SingleSourceShortestPathJob extends GiraphJob {
 
 	private SingleSourceShortestPathsParameters parameters;
-	private Graph graphFormat;
+	private Graph graph;
 
 	/**
 	 * Constructs a breadth-first-search job with a BFSParameters object containing
 	 * graph-specific parameters, and a graph format specification
 	 *
 	 * @param parameters  the graph-specific BFS parameters
-	 * @param graphFormat the graph format specification
+	 * @param graph the graph format specification
 	 */
-	public SingleSourceShortestPathJob(Object parameters, Graph graphFormat) {
+	public SingleSourceShortestPathJob(Object parameters, Graph graph) {
 		assert (parameters instanceof SingleSourceShortestPathsParameters);
 		this.parameters = (SingleSourceShortestPathsParameters) parameters;
-		this.graphFormat = graphFormat;
+		this.graph = graph;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -77,7 +77,7 @@ public class SingleSourceShortestPathJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graphFormat.isDirected() ?
+		return graph.isDirected() ?
 				DirectedLongDoubleTextEdgeInputFormat.class :
 				UndirectedLongDoubleTextEdgeInputFormat.class;
 	}
