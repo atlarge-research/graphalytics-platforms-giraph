@@ -1,16 +1,11 @@
 package nl.tudelft.granula.modeller;
 
-import nl.tudelft.granula.archiver.GranulaArchiver;
 import nl.tudelft.granula.archiver.GranulaExecutor;
-import nl.tudelft.granula.modeller.entity.BasicType.ArchiveFormat;
 import nl.tudelft.granula.modeller.entity.Execution;
 import nl.tudelft.granula.modeller.job.JobModel;
-import nl.tudelft.granula.modeller.job.Overview;
-import nl.tudelft.granula.modeller.platform.Giraph;
-import nl.tudelft.granula.modeller.source.JobDirectorySource;
 import nl.tudelft.granula.util.FileUtil;
 import nl.tudelft.granula.util.json.JsonUtil;
-import nl.tudelft.graphalytics.granula.GranulaPlugin;
+import science.atlarge.graphalytics.granula.GranulaPlugin;
 
 import java.nio.file.Paths;
 
