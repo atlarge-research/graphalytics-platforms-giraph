@@ -17,7 +17,7 @@ package science.atlarge.graphalytics.giraph.algorithms.lcc;
 
 import static org.apache.giraph.conf.GiraphConstants.MESSAGE_ENCODE_AND_STORE_TYPE;
 
-import science.atlarge.graphalytics.domain.graph.Graph;
+import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import org.apache.giraph.comm.messages.MessageEncodeAndStoreType;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.Computation;
@@ -38,21 +38,21 @@ import science.atlarge.graphalytics.giraph.io.UndirectedLongNullTextEdgeInputFor
  */
 public class LocalClusteringCoefficientJob extends GiraphJob {
 
-	private Graph graph;
+	private FormattedGraph formattedGraph;
 
 	/**
 	 * Constructs a statistics (LCC) job with a graph format specification.
 	 *
-	 * @param graph the graph format specification
+	 * @param formattedGraph the graph format specification
 	 */
-	public LocalClusteringCoefficientJob(Graph graph) {
-		this.graph = graph;
+	public LocalClusteringCoefficientJob(FormattedGraph formattedGraph) {
+		this.formattedGraph = formattedGraph;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return (graph.isDirected() ?
+		return (formattedGraph.isDirected() ?
 				DirectedLocalClusteringCoefficientComputation.class :
 				UndirectedLocalClusteringCoefficientComputation.class);
 	}
@@ -72,7 +72,7 @@ public class LocalClusteringCoefficientJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graph.isDirected() ?
+		return formattedGraph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}

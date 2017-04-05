@@ -24,12 +24,12 @@ import java.util.Map;
 import nl.tudelft.granula.archiver.PlatformArchive;
 import nl.tudelft.granula.modeller.job.JobModel;
 import nl.tudelft.granula.modeller.platform.Giraph;
+import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
 import science.atlarge.graphalytics.report.result.BenchmarkResult;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
 import science.atlarge.graphalytics.report.result.PlatformBenchmarkResult;
-import science.atlarge.graphalytics.domain.graph.Graph;
 import science.atlarge.graphalytics.giraph.log.JobLogger;
 import science.atlarge.graphalytics.granula.GranulaAwarePlatform;
 import org.apache.commons.configuration.ConfigurationException;
@@ -130,24 +130,24 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void uploadGraph(Graph graph) throws Exception {
-		LOG.info("Uploading graph \"{}\" to HDFS", graph.getName());
+	public void uploadGraph(FormattedGraph formattedGraph) throws Exception {
+		LOG.info("Uploading graph \"{}\" to HDFS", formattedGraph.getName());
 
-		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", graph.getName()).toString();
+		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
 
 		// Upload the graph to HDFS
 		FileSystem fs = FileSystem.get(new Configuration());
 
 		LOG.debug("- Uploading vertex list");
-		fs.copyFromLocalFile(new Path(graph.getVertexFilePath()), new Path(uploadPath + ".v"));
+		fs.copyFromLocalFile(new Path(formattedGraph.getVertexFilePath()), new Path(uploadPath + ".v"));
 
 		LOG.debug("- Uploading edge list");
-		fs.copyFromLocalFile(new Path(graph.getEdgeFilePath()), new Path(uploadPath + ".e"));
+		fs.copyFromLocalFile(new Path(formattedGraph.getEdgeFilePath()), new Path(uploadPath + ".e"));
 
 		fs.close();
 
 		// Track available datasets in a map
-		pathsOfGraphs.put(graph.getName(), uploadPath);
+		pathsOfGraphs.put(formattedGraph.getName(), uploadPath);
 	}
 
 	@Override
@@ -155,20 +155,20 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 	}
 
-	private void setupGraph(Graph graph) {
-		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", graph.getName()).toString();
-		pathsOfGraphs.put(graph.getName(), uploadPath);
+	private void setupGraph(FormattedGraph formattedGraph) {
+		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
+		pathsOfGraphs.put(formattedGraph.getName(), uploadPath);
 	}
 
 	@Override
-	public PlatformBenchmarkResult execute(BenchmarkRun benchmark) throws PlatformExecutionException {
+	public boolean execute(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
-		Graph graph = benchmark.getGraph();
+		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
 
-		setupGraph(graph);
+		setupGraph(formattedGraph);
 
-		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), graph.getName());
+		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), formattedGraph.getName());
 
 		int result;
 		try {
@@ -176,24 +176,24 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			GiraphJob job;
 			switch (algorithm) {
 				case BFS:
-					job = new BreadthFirstSearchJob(parameters, graph);
+					job = new BreadthFirstSearchJob(parameters, formattedGraph);
 					break;
 				case CDLP:
-					job = new CommunityDetectionLPJob(parameters, graph);
+					job = new CommunityDetectionLPJob(parameters, formattedGraph);
 					break;
 				case WCC:
-					job = new WeaklyConnectedComponentsJob(graph);
+					job = new WeaklyConnectedComponentsJob(formattedGraph);
 					break;
 				case FFM:
-					job = new ForestFireModelJob(parameters, graph);
+					job = new ForestFireModelJob(parameters, formattedGraph);
 				case LCC:
-					job = new LocalClusteringCoefficientJob(graph);
+					job = new LocalClusteringCoefficientJob(formattedGraph);
 					break;
 				case PR:
-					job = new PageRankJob(parameters, graph);
+					job = new PageRankJob(parameters, formattedGraph);
 					break;
 				case SSSP:
-					job = new SingleSourceShortestPathJob(parameters, graph);
+					job = new SingleSourceShortestPathJob(parameters, formattedGraph);
 					break;
 				default:
 					throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
@@ -201,10 +201,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			// Create the job configuration using the Giraph properties file
 			String hdfsOutputPath = Paths.get(hdfsDirectory, getPlatformName(), "output",
-					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + graph.getName()).toString();
+					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + formattedGraph.getName()).toString();
 			Configuration jobConf = new Configuration();
 
-			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(graph.getName()));
+			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(formattedGraph.getName()));
 			GiraphJob.OUTPUT_PATH.set(jobConf, hdfsOutputPath);
 			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(giraphConfig, ZOOKEEPERADDRESS));
 
@@ -237,7 +237,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
 
-		return new PlatformBenchmarkResult();
+		return true;
 	}
 
 	private void deleteOutput(String outputPath) {
@@ -270,8 +270,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void deleteGraph(String graphName) {
-		String path = pathsOfGraphs.get(graphName);
+	public void deleteGraph(FormattedGraph formattedGraph) {
+		String path = pathsOfGraphs.get(formattedGraph.getName());
 
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
 			fs.delete(new Path(path + ".v"), true);
@@ -281,10 +281,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		}
 	}
 
-	@Override
-	public BenchmarkMetrics extractMetrics() {
-		return new BenchmarkMetrics();
-	}
 
 	@Override
 	public String getPlatformName() {

@@ -15,7 +15,7 @@
  */
 package science.atlarge.graphalytics.giraph.algorithms.ffm;
 
-import science.atlarge.graphalytics.domain.graph.Graph;
+import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.domain.algorithms.ForestFireModelParameters;
 import science.atlarge.graphalytics.giraph.GiraphJob;
 import science.atlarge.graphalytics.giraph.io.DirectedLongNullTextEdgeInputFormat;
@@ -37,25 +37,25 @@ import static science.atlarge.graphalytics.giraph.algorithms.ffm.ForestFireModel
 public class ForestFireModelJob extends GiraphJob {
 
 	private ForestFireModelParameters parameters;
-	private Graph graph;
+	private FormattedGraph formattedGraph;
 
 	/**
 	 * Constructs a forest fire model job with a EVOParameters object containing
 	 * graph-specific parameters, and a graph format specification
 	 *
 	 * @param parameters  the graph-specific FFM parameters
-	 * @param graph the graph specification
+	 * @param formattedGraph the graph specification
 	 */
-	public ForestFireModelJob(Object parameters, Graph graph) {
+	public ForestFireModelJob(Object parameters, FormattedGraph formattedGraph) {
 		assert (parameters instanceof ForestFireModelParameters);
 		this.parameters = (ForestFireModelParameters)parameters;
-		this.graph = graph;
+		this.formattedGraph = formattedGraph;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends Computation> getComputationClass() {
-		return (graph.isDirected() ?
+		return (formattedGraph.isDirected() ?
 				DirectedForestFireModelComputation.class :
 				UndirectedForestFireModelComputation.class);
 	}
@@ -75,7 +75,7 @@ public class ForestFireModelJob extends GiraphJob {
 	@SuppressWarnings("rawtypes")
 	@Override
 	protected Class<? extends EdgeInputFormat> getEdgeInputFormatClass() {
-		return graph.isDirected() ?
+		return formattedGraph.isDirected() ?
 				DirectedLongNullTextEdgeInputFormat.class :
 				UndirectedLongNullTextEdgeInputFormat.class;
 	}
