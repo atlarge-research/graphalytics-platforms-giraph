@@ -296,9 +296,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void postprocess(BenchmarkRun benchmark) {
+	public BenchmarkMetrics postprocess(BenchmarkRun benchmark) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
+		return new BenchmarkMetrics();
 	}
 
 	@Override
