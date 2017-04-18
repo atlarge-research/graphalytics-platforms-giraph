@@ -32,7 +32,7 @@ public class GiraphPrepare extends AbstractOperationModel {
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Startup));
 
         addInfoDerivation(new FilialStartTimeDerivation(4));
         addInfoDerivation(new FilialEndTimeDerivation(4));

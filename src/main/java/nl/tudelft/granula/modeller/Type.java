@@ -32,7 +32,7 @@ public class Type extends BasicType {
     public static String PreCompute = "PreCompute";
     public static String Postpare = "Postpare";
     public static String Prepare = "Prepare";
-    public static String Execute = "Execute";
+    public static String ProcessGraph = "ProcessGraph";
     public static String PreApplication = "PreApplication";
     public static String PostApplication = "PostApplication";
     public static String Compute = "Compute";
@@ -41,6 +41,13 @@ public class Type extends BasicType {
     public static String ParallelCompute = "ParallelCompute";
     public static String VertexCompute = "VertexCompute";
 
+    public static String OffloadPartition = "OffloadPartition";
+
+
+    public static String OffloadGraph = "OffloadGraph";
+    public static String LoadGraph = "LoadGraph";
+    public static String Cleanup = "Cleanup";
+    public static String Startup = "Startup";
     // info
 
     // others

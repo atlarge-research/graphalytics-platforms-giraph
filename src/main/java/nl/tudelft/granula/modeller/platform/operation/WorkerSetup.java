@@ -20,16 +20,16 @@ import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class GiraphSetup extends RealtimeOperationModel {
+public class WorkerSetup extends RealtimeOperationModel {
 
-    public GiraphSetup() {
-        super(Type.Giraph, Type.Setup);
+    public WorkerSetup() {
+        super(Type.Worker, Type.Setup);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
-
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.LoadGraph));
+//        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.P, Type.Equal));
         String summary = "Setup.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }

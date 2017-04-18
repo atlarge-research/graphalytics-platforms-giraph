@@ -3,9 +3,9 @@ package nl.tudelft.granula.modeller;
 import nl.tudelft.granula.archiver.GranulaExecutor;
 import nl.tudelft.granula.modeller.entity.Execution;
 import nl.tudelft.granula.modeller.job.JobModel;
+import nl.tudelft.granula.modeller.platform.Giraph;
 import nl.tudelft.granula.util.FileUtil;
 import nl.tudelft.granula.util.json.JsonUtil;
-import science.atlarge.graphalytics.granula.GranulaPlugin;
 
 import java.nio.file.Paths;
 
@@ -21,9 +21,9 @@ public class ModelTester {
                 Paths.get(inputPath + "/execution/execution-log.js")), Execution.class);
         execution.setLogPath(inputPath);
         // Set end time in "log directory"/execution/execution-log.js, or the end time is set as the current time.
-//        execution.setEndTime(System.currentTimeMillis());
+        execution.setEndTime(execution.getStartTime() + 90000);
         execution.setArcPath(outputPath);
-        JobModel jobModel = new JobModel(GranulaPlugin.getPlatformModel(execution.getPlatform()));
+        JobModel jobModel = new JobModel(new Giraph());
 
         GranulaExecutor granulaExecutor = new GranulaExecutor();
         granulaExecutor.setEnvEnabled(false);

@@ -17,9 +17,8 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.ColorDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
 public class WorkerPreCompute extends RealtimeOperationModel {
@@ -31,10 +30,11 @@ public class WorkerPreCompute extends RealtimeOperationModel {
     public void loadRules() {
         super.loadRules();
 
-//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
-        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.ProcessGraph));
+//        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
 
         String summary = "PreCompute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
+        addInfoDerivation(new ColorDerivation(11, "#999"));
     }
 }

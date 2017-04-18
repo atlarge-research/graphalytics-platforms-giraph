@@ -17,8 +17,8 @@
 package nl.tudelft.granula.modeller.rule.linking;
 
 import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.platform.operation.Operation;
 import nl.tudelft.granula.modeller.entity.BasicType;
+import nl.tudelft.granula.modeller.platform.operation.Operation;
 
 import java.util.ArrayList;
 import java.util.List;

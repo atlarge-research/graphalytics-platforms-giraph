@@ -20,7 +20,6 @@ import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.FilialLongAggregationDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
 import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
 import java.util.Arrays;
@@ -33,7 +32,8 @@ public class WorkerLocalSuperstep extends RealtimeOperationModel {
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+        addLinkingRule(new EmptyLinking());
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
         addInfoDerivation(new FilialLongAggregationDerivation(3, "Compute", "Duration", "ComputeTime"));
 //        addLinkingRule(new EmptyLinking());
 

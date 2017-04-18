@@ -17,11 +17,13 @@
 package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
+import nl.tudelft.granula.modeller.rule.derivation.ColorDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.FilialCompletenessDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.FilialLongAggregationDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.time.*;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import nl.tudelft.granula.modeller.rule.derivation.time.DurationDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.FilialEndTimeDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.FilialStartTimeDerivation;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 import nl.tudelft.granula.modeller.rule.visual.TableVisualization;
 
@@ -30,7 +32,7 @@ import java.util.Arrays;
 public class GiraphExecute extends AbstractOperationModel {
 
     public GiraphExecute() {
-        super(Type.Giraph, Type.Execute);
+        super(Type.Giraph, Type.ProcessGraph);
     }
 
     public void loadRules() {
@@ -46,5 +48,6 @@ public class GiraphExecute extends AbstractOperationModel {
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
 
         addVisualDerivation(new TableVisualization(1, "Informations", Arrays.asList("ComputeTime")));
+        addInfoDerivation(new ColorDerivation(11, "#3cf"));
     }
 }

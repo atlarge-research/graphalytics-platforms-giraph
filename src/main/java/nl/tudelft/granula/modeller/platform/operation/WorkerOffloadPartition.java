@@ -18,22 +18,20 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.AdvancedIdentifierParentLinking;
+import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class WorkerThreadParallelCompute extends RealtimeOperationModel {
+public class WorkerOffloadPartition extends RealtimeOperationModel {
 
-    public WorkerThreadParallelCompute() {
-        super(Type.WorkerThread, Type.ParallelCompute);
+    public WorkerOffloadPartition() {
+        super(Type.Worker, Type.OffloadPartition);
     }
 
     public void loadRules() {
         super.loadRules();
 
-//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
-        addLinkingRule(new AdvancedIdentifierParentLinking(Type.Worker, Type.Ladder, Type.Compute, Type.Equal));
-//        addLinkingRule(new EmptyLinking());
-
-        String summary = "ParallelCompute.";
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.OffloadGraph));
+//        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
+        String summary = "Compute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }
 }

@@ -18,24 +18,32 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.ColorDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.FilialCompletenessDerivation;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.DurationDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.FilialEndTimeDerivation;
+import nl.tudelft.granula.modeller.rule.derivation.time.FilialStartTimeDerivation;
 import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class WorkerPostCompute extends RealtimeOperationModel {
+public class GiraphLoad extends AbstractOperationModel {
 
-    public WorkerPostCompute() {
-        super(Type.Worker, Type.PostCompute);
+    public GiraphLoad() {
+        super(Type.Giraph, Type.LoadGraph);
     }
 
     public void loadRules() {
         super.loadRules();
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
 
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.ProcessGraph));
-//        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
+        addInfoDerivation(new FilialStartTimeDerivation(5));
+        addInfoDerivation(new FilialEndTimeDerivation(5));
+        addInfoDerivation(new DurationDerivation(6));
+        this.addInfoDerivation(new FilialCompletenessDerivation(2));
 
-
-        String summary = "PostCompute.";
+        String summary = "Prepare.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
-        addInfoDerivation(new ColorDerivation(11, "#999"));
+        addInfoDerivation(new ColorDerivation(11, "#393"));
     }
+
 }
+

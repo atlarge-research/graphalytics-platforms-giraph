@@ -18,7 +18,6 @@ package nl.tudelft.granula.modeller.platform.operation;
 
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.AdvancedIdentifierParentLinking;
 import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
 
 public class WorkerThreadVertexCompute extends RealtimeOperationModel {

@@ -16,21 +16,15 @@
 
 package nl.tudelft.granula.modeller.platform;
 
-import nl.tudelft.grade10.Grade10ModelParser;
 import nl.tudelft.granula.modeller.Type;
 import nl.tudelft.granula.modeller.job.Job;
 import nl.tudelft.granula.modeller.job.Overview;
-import nl.tudelft.granula.modeller.platform.info.BasicInfo;
-import nl.tudelft.granula.modeller.platform.info.Source;
 import nl.tudelft.granula.modeller.platform.operation.*;
-import nl.tudelft.granula.modeller.platform.operation.GiraphJob;
 import nl.tudelft.granula.modeller.rule.derivation.DerivationRule;
 import nl.tudelft.granula.modeller.rule.extraction.GiraphExtractionRule;
 import nl.tudelft.granula.modeller.rule.filling.UniqueOperationFilling;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Giraph extends PlatformModel {
@@ -38,10 +32,16 @@ public class Giraph extends PlatformModel {
     public Giraph() {
         super();
         addOperationModel(new GiraphJob());
+        addOperationModel(new WorkerOffloadPartition());
+        addOperationModel(new GiraphCleanup());
+
+        addOperationModel(new GiraphOffload());
+        addOperationModel(new GiraphLoad());
+        addOperationModel(new GiraphStartup());
         addOperationModel(new WorkerPreCompute());
         addOperationModel(new WorkerPostCompute());
         addOperationModel(new WorkerLocalSuperstep());
-        addOperationModel(new GiraphSetup());
+        addOperationModel(new WorkerSetup());
         addOperationModel(new GiraphExecute());
         addOperationModel(new WorkerCompute());
         addOperationModel(new WorkerPreApplication());
@@ -57,12 +57,18 @@ public class Giraph extends PlatformModel {
 
         addExtraction(new GiraphExtractionRule(1));
         addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Job));
-        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Execute));
+
+        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.OffloadGraph));
+        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.LoadGraph));
+        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.ProcessGraph));
+        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Startup));
         addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Prepare));
         addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Postpare));
+
+        addFillingRule(new UniqueOperationFilling(2, Type.Giraph, Type.Cleanup));
         addInfoDerivation(new JobNameDerivationRule(4));
         addInfoDerivation(new JobInfoRule(20));
-        addInfoDerivation(new Grade10ModelParser(21));
+//        addInfoDerivation(new Grade10ModelParser(21));
     }
 
 
@@ -89,7 +95,7 @@ public class Giraph extends PlatformModel {
             platform.addRoot(jobOper.getUuid());
 
             try {
-                Operation processGraph = platform.findOperation(Type.Giraph, Type.Execute);
+                Operation processGraph = platform.findOperation(Type.Giraph, Type.ProcessGraph);
                 long processingTime = Long.parseLong(processGraph.getInfo("Duration").getValue());
 
                 Map<String, Long> breakDown = new HashMap<>();
