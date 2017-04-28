@@ -119,9 +119,9 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	private void loadConfiguration() {
 		// Load Giraph-specific configuration
 		try {
-			giraphConfig = new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
-			benchmarkConfig = new PropertiesConfiguration(BENCHMARK_PROPERTIES_FILE);
-		} catch (ConfigurationException e) {
+			giraphConfig = ConfigurationUtil.loadConfiguration(GIRAPH_PROPERTIES_FILE);
+			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
+		} catch (InvalidConfigurationException e) {
 			// Fall-back to an empty properties file
 			LOG.info("Could not find or load giraph.properties.");
 			giraphConfig = new PropertiesConfiguration();
