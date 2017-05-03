@@ -97,6 +97,9 @@
     <profiles>
         <profile>
             <id>granula</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.giraph</groupId>
