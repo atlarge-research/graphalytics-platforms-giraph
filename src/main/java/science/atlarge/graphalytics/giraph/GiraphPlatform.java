@@ -27,12 +27,10 @@ import nl.tudelft.granula.modeller.platform.Giraph;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
-import science.atlarge.graphalytics.report.result.BenchmarkResult;
+import science.atlarge.graphalytics.report.result.BenchmarkRunResult;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
-import science.atlarge.graphalytics.report.result.PlatformBenchmarkResult;
 import science.atlarge.graphalytics.giraph.log.JobLogger;
 import science.atlarge.graphalytics.granula.GranulaAwarePlatform;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.hadoop.conf.Configuration;
@@ -315,12 +313,12 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 
 	@Override
-	public void enrichMetrics(BenchmarkResult benchmarkResult, java.nio.file.Path arcDirectory) {
+	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, java.nio.file.Path arcDirectory) {
 		try {
 			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
 			JSONObject processGraph = platformArchive.operation("Execute");
 			Integer procTime = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
-			BenchmarkMetrics metrics = benchmarkResult.getMetrics();
+			BenchmarkMetrics metrics = benchmarkRunResult.getMetrics();
 			metrics.setProcessingTime(procTime);
 		} catch(Exception e) {
 			LOG.error("Failed to enrich metrics.");
