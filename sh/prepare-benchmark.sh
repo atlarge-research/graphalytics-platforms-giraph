@@ -17,15 +17,15 @@
 
 
 # Ensure the configuration file exists
-if [ ! -f "$config/giraph.properties" ]; then
-	echo "Missing mandatory configuration file: $config/giraph.properties" >&2
+if [ ! -f "$config/platform.properties" ]; then
+	echo "Missing mandatory configuration file: $config/platform.properties" >&2
 	exit 1
 fi
 
-# Get the first specification of hadoop.home
-hadoophome=$(grep -E "^hadoop.home[	 ]*[:=]" $config/giraph.properties | sed 's/hadoop.home[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
+# Get the first specification of platform.hadoop.home
+hadoophome=$(grep -E "^platform.hadoop.home[	 ]*[:=]" $config/platform.properties | sed 's/platform.hadoop.home[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
 if [ ! -f "$hadoophome/bin/hadoop" ]; then
-	echo "Invalid definition of hadoop.home: $hadoophome" >&2
+	echo "Invalid definition of platform.hadoop.home: $hadoophome" >&2
 	echo "Could not find hadoop executable: $hadoophome/bin/hadoop" >&2
 	exit 1
 fi
