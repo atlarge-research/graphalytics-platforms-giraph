@@ -1,15 +1,39 @@
-# Graphalytics Giraph platform extension
+# Graphalytics Giraph platform driver
 
 [![Build Status](http://jenkins.tribler.org/buildStatus/icon?job=Graphalytics_Giraph_master_tester)](http://jenkins.tribler.org/job/Graphalytics_Giraph_master_tester/)
 
-## Getting started
+[Apache Giraph](http://giraph.apache.org) is an iterative graph processing system built for high scalability, originated as the open-source counterpart to Google's Pregel, inspired by the Bulk Synchronous Parallel model of distributed computation introduced by Leslie Valiant.
 
-Please refer to the documentation of the Graphalytics core (`graphalytics` repository) for an introduction to using Graphalytics.
+To execute Graphalytics benchmark on Giraph, follow the steps in the Graphalytics tutorial on [Running Benchmark](https://github.com/wlngai/graphalytics-wiki/wiki/Tutorial:-Running-Benchmark#benchmark-configuration) with the Giraph-specific instructions listed below.
 
+### Obtain the platform driver
+There are two possible ways to obtain the Giraph platform driver:
 
-## Giraph-specific benchmark configuration
+ 1. **Download the (prebuild) **[Giraph platform driver](https://atlarge-research.com/projects/graphalytics/platforms)** distribution from our website.
 
-The `giraph` benchmark runs on Hadoop version 2.4.1 or later (earlier versions have not been attempted) and requires ZooKeeper (tested with 3.4.1). Before launching the benchmark, ensure Hadoop is running in either pseudo-distributed or distributed mode, and ensure that the ZooKeeper service is running. Next, edit `config/platform.properties` in the Graphalytics distribution and change the following settings:
+ 2. **Build the platform drivers**: 
+  - Download the source code from this repository.
+  - Execute `mvn clean package` in the root directory (See more details in [Software Build](https://github.com/ldbc/ldbc_graphalytics/wiki/Documentation:-Software-Build)).
+  - Extract the distribution from `graphalytics-{graphalytics-version}-giraph-{platform-version}.tar.gz`.
+
+### Verify the necessary prerequisites
+The softwares listed below are required by the Giraph platform driver, which must be available in the cluster environment. Softwares that are provided are already included in the platform driver.
+
+| Software | Version (tested) | Usage | Description | Provided |
+|-------------|:-------------:|:-------------:|:-------------:|:-------------:|
+| Giraph | 1.6.0 | Platform| Providing Giraph implementation | ✔(maven) |
+| Graphalytics | 1.0 (TODO) | Driver | Graphalytics benchmark suite | ✔(maven) |
+| Granula | 0.1 (TODO) | Driver | Fine-grained performance analysis | ✔(maven) |
+| YARN | 2.6.1 | Deployment | Job provisioning and allocation | - |
+| Zookeeper | 3.4.1 | Deployment | Synchronizing Giraph workers | - |
+| JDK | 1.7.0+ | Build | Java virtual machine | - |
+| Maven | 3.3.9 | Build | Building the platform driver | - |
+
+ - `Yarn`: should be reachable in the compute node where the benchmark will be executed.
+ - `Zookeeper`: should be running in a compute node accessible via the network.
+
+### Adjust the benchmark configurations
+Adjust the Giraph configurations in `config/platform.properties`: 
 
  - `platform.giraph.zoo-keeper-address`: Set to the hostname and port on which ZooKeeper is running.
  - `platform.giraph.job.heap-size`: Set to the amount of heap space (in MB) each worker should have. As Giraph runs on MapReduce, this setting corresponds to the JVM heap specified for each map task, i.e., `mapreduce.map.java.opts`.
