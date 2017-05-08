@@ -27,12 +27,10 @@ import nl.tudelft.granula.modeller.platform.Giraph;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
-import science.atlarge.graphalytics.report.result.BenchmarkResult;
+import science.atlarge.graphalytics.report.result.BenchmarkRunResult;
 import science.atlarge.graphalytics.domain.benchmark.BenchmarkRun;
-import science.atlarge.graphalytics.report.result.PlatformBenchmarkResult;
 import science.atlarge.graphalytics.giraph.log.JobLogger;
 import science.atlarge.graphalytics.granula.GranulaAwarePlatform;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.hadoop.conf.Configuration;
@@ -67,7 +65,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	/**
 	 * Default file name for the file storing Giraph properties.
 	 */
-	public static final String GIRAPH_PROPERTIES_FILE = "giraph.properties";
+	public static final String GIRAPH_PROPERTIES_FILE = "platform.properties";
 
 	/**
 	 * Default file name for the file storing System properties.
@@ -77,34 +75,33 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	/**
 	 * Property key for setting the number of workers to be used for running Giraph jobs.
 	 */
-	public static final String JOB_WORKERCOUNT = "giraph.job.worker-count";
+	public static final String JOB_WORKERCOUNT = "platform.giraph.job.worker-count";
 	/**
 	 * Property key for setting the memory size of each Giraph worker.
 	 */
-	public static final String JOB_MEMORYSIZE = "giraph.job.memory-size";
+	public static final String JOB_MEMORYSIZE = "platform.giraph.job.memory-size";
 	/**
 	 * Property key for setting the heap size of each Giraph worker.
 	 */
-	public static final String JOB_HEAPSIZE = "giraph.job.heap-size";
+	public static final String JOB_HEAPSIZE = "platform.giraph.job.heap-size";
 	/**
 	 * Property key for setting the core count of each Giraph worker.
 	 */
-	public static final String JOB_CORES = "giraph.job.worker-cores";
+	public static final String JOB_CORES = "platform.giraph.job.worker-cores";
 	/**
 	 * Property key for the address of a ZooKeeper instance to use during the benchmark.
 	 */
-	public static final String ZOOKEEPERADDRESS = "giraph.zoo-keeper-address";
+	public static final String ZOOKEEPERADDRESS = "platform.giraph.zoo-keeper-address";
 	/**
 	 * Property key for the directory on HDFS in which to store all input and output.
 	 */
-	public static final String HDFS_DIRECTORY_KEY = "hadoop.hdfs.directory";
+	public static final String HDFS_DIRECTORY_KEY = "platform.hadoop.hdfs.directory";
 	/**
 	 * Property key for the directory on HDFS in which to store all input and output.
 	 */
 	public static final String HDFS_DIRECTORY = "graphalytics";
 
 	private Map<String, String> pathsOfGraphs = new HashMap<>();
-	private org.apache.commons.configuration.Configuration giraphConfig;
 	private org.apache.commons.configuration.Configuration benchmarkConfig;
 	private String hdfsDirectory;
 
@@ -119,14 +116,13 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	private void loadConfiguration() {
 		// Load Giraph-specific configuration
 		try {
-			giraphConfig = new PropertiesConfiguration(GIRAPH_PROPERTIES_FILE);
-			benchmarkConfig = new PropertiesConfiguration(BENCHMARK_PROPERTIES_FILE);
-		} catch (ConfigurationException e) {
+			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
+		} catch (InvalidConfigurationException e) {
 			// Fall-back to an empty properties file
-			LOG.info("Could not find or load giraph.properties.");
-			giraphConfig = new PropertiesConfiguration();
+			LOG.info("Could not find or load benchmark.properties.");
+			benchmarkConfig = new PropertiesConfiguration();
 		}
-		hdfsDirectory = giraphConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
+		hdfsDirectory = benchmarkConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
 	}
 
 	@Override
@@ -206,16 +202,16 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(formattedGraph.getName()));
 			GiraphJob.OUTPUT_PATH.set(jobConf, hdfsOutputPath);
-			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(giraphConfig, ZOOKEEPERADDRESS));
+			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(benchmarkConfig, ZOOKEEPERADDRESS));
 
-			transferIfSet(giraphConfig, JOB_WORKERCOUNT, jobConf, GiraphJob.WORKER_COUNT);
-			transferIfSet(giraphConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
-			transferIfSet(giraphConfig, JOB_HEAPSIZE, jobConf, GiraphJob.WORKER_HEAP_MB);
-			transferIfSet(giraphConfig, JOB_CORES, jobConf, GiraphJob.WORKER_CORES);
+			transferIfSet(benchmarkConfig, JOB_WORKERCOUNT, jobConf, GiraphJob.WORKER_COUNT);
+			transferIfSet(benchmarkConfig, JOB_MEMORYSIZE, jobConf, GiraphJob.WORKER_MEMORY_MB);
+			transferIfSet(benchmarkConfig, JOB_HEAPSIZE, jobConf, GiraphJob.WORKER_HEAP_MB);
+			transferIfSet(benchmarkConfig, JOB_CORES, jobConf, GiraphJob.WORKER_CORES);
 
 			GiraphJob.JOB_ID.set(jobConf, benchmark.getId());
 
-			transferGiraphOptions(giraphConfig, jobConf);
+			transferGiraphOptions(benchmarkConfig, jobConf);
 
 			// Execute the Giraph job
 			result = ToolRunner.run(jobConf, job, new String[0]);
@@ -262,7 +258,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
 			Configuration destination) {
-		org.apache.commons.configuration.Configuration giraphOptions = source.subset("giraph.options");
+		org.apache.commons.configuration.Configuration giraphOptions = source.subset("platform.giraph.options");
 		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
 			String option = optionIterator.next();
 			destination.set("giraph." + option, giraphOptions.getString(option));
@@ -296,9 +292,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void postprocess(BenchmarkRun benchmark) {
+	public BenchmarkMetrics postprocess(BenchmarkRun benchmark) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
+		return new BenchmarkMetrics();
 	}
 
 	@Override
@@ -314,12 +311,12 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 
 	@Override
-	public void enrichMetrics(BenchmarkResult benchmarkResult, java.nio.file.Path arcDirectory) {
+	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, java.nio.file.Path arcDirectory) {
 		try {
 			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
 			JSONObject processGraph = platformArchive.operation("Execute");
 			Integer procTime = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
-			BenchmarkMetrics metrics = benchmarkResult.getMetrics();
+			BenchmarkMetrics metrics = benchmarkRunResult.getMetrics();
 			metrics.setProcessingTime(procTime);
 		} catch(Exception e) {
 			LOG.error("Failed to enrich metrics.");
