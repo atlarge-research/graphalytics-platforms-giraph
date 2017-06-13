@@ -126,7 +126,12 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void uploadGraph(FormattedGraph formattedGraph) throws Exception {
+	public void verifySetup() {
+
+	}
+
+	@Override
+	public void loadGraph(FormattedGraph formattedGraph) throws Exception {
 		LOG.info("Uploading graph \"{}\" to HDFS", formattedGraph.getName());
 
 		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
@@ -157,7 +162,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public boolean execute(BenchmarkRun benchmark) throws PlatformExecutionException {
+	public boolean run(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
@@ -285,21 +290,21 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 
 	@Override
-	public void preprocess(BenchmarkRun benchmark) {
+	public void startup(BenchmarkRun benchmark) {
 		JobLogger.stopCoreLogging();
 		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
 		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
 	}
 
 	@Override
-	public BenchmarkMetrics postprocess(BenchmarkRun benchmark) {
+	public BenchmarkMetrics finalize(BenchmarkRun benchmark) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
 		return new BenchmarkMetrics();
 	}
 
 	@Override
-	public void cleanup(BenchmarkRun benchmark) {
+	public void terminate(BenchmarkRun benchmark) {
 		JobLogger.collectYarnLogs(benchmark.getLogDir());
 	}
 
