@@ -4,7 +4,7 @@
 
 [Apache Giraph](http://giraph.apache.org) is an iterative graph processing system built for high scalability, originated as the open-source counterpart to Google's Pregel, inspired by the Bulk Synchronous Parallel model of distributed computation introduced by Leslie Valiant.
 
-To execute Graphalytics benchmark on Giraph, follow the steps in the Graphalytics tutorial on [Running Benchmark](https://github.com/wlngai/graphalytics-wiki/wiki/Tutorial:-Running-Benchmark#benchmark-configuration) with the Giraph-specific instructions listed below.
+To execute Graphalytics benchmark on Giraph, follow the steps in the Graphalytics tutorial on [Running Benchmark](https://github.com/ldbc/ldbc_graphalytics/wiki/Manual%3A-Running-Benchmark) with the Giraph-specific instructions listed below.
 
 ### Obtain the platform driver
 There are two possible ways to obtain the Giraph platform driver:
@@ -12,6 +12,7 @@ There are two possible ways to obtain the Giraph platform driver:
  1. **Download the (prebuild) **[Giraph platform driver](https://atlarge-research.com/projects/graphalytics/platforms)** distribution from our website.
 
  2. **Build the platform drivers**: 
+  - (To be deprecated): Current it is required to build the [Graphlytics core libraries](https://github.com/ldbc/ldbc_graphalytics/tree/) with ``mvn clean install -Pgranula``, soon it will be available via Maven central repo.
   - Download the source code from this repository.
   - Execute `mvn clean package` in the root directory (See more details in [Software Build](https://github.com/ldbc/ldbc_graphalytics/wiki/Documentation:-Software-Build)).
   - Extract the distribution from `graphalytics-{graphalytics-version}-giraph-{platform-version}.tar.gz`.
