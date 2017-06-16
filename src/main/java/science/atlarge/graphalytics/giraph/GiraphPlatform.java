@@ -115,17 +115,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		loadConfiguration();
 	}
 
-	private void loadConfiguration() {
-		// Load Giraph-specific configuration
-		try {
-			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
-		} catch (InvalidConfigurationException e) {
-			// Fall-back to an empty properties file
-			LOG.info("Could not find or load benchmark.properties.");
-			benchmarkConfig = new PropertiesConfiguration();
-		}
-		hdfsDirectory = benchmarkConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
-	}
 
 	@Override
 	public void verifySetup() {
@@ -154,13 +143,32 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void prepare(BenchmarkRun benchmarkRun) {
+	public void deleteGraph(FormattedGraph formattedGraph) {
+		String path = pathsOfGraphs.get(formattedGraph.getName());
 
+		try(FileSystem fs = FileSystem.get(new Configuration())) {
+			fs.delete(new Path(path + ".v"), true);
+			fs.delete(new Path(path + ".e"), true);
+		} catch(IOException e) {
+			LOG.warn("Error occured while deleting files", e);
+		}
 	}
 
 	private void setupGraph(FormattedGraph formattedGraph) {
 		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
 		pathsOfGraphs.put(formattedGraph.getName(), uploadPath);
+	}
+
+	@Override
+	public void prepare(BenchmarkRun benchmarkRun) {
+
+	}
+
+	@Override
+	public void startup(BenchmarkRun benchmark) {
+		JobLogger.stopCoreLogging();
+		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
+		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
 	}
 
 	@Override
@@ -243,60 +251,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		return true;
 	}
 
-	private void deleteOutput(String outputPath) {
-
-		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			LOG.info(String.format("Deleting output directory: %s at hdfs.", outputPath));
-			fs.delete(new Path(outputPath), true);
-		} catch(IOException e) {
-			LOG.warn("Error occured while deleting files", e);
-		}
-	}
-
-	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
-			Configuration destination, IntConfOption destinationOption) throws InvalidConfigurationException {
-		if (source.containsKey(sourceProperty)) {
-			destinationOption.set(destination, ConfigurationUtil.getInteger(source, sourceProperty));
-		} else {
-			LOG.warn(sourceProperty + " is not configured, defaulting to " +
-					destinationOption.getDefaultValue() + ".");
-		}
-	}
-
-	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
-			Configuration destination) {
-		org.apache.commons.configuration.Configuration giraphOptions = source.subset("platform.giraph.options");
-		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
-			String option = optionIterator.next();
-			destination.set("giraph." + option, giraphOptions.getString(option));
-		}
-	}
-
-	@Override
-	public void deleteGraph(FormattedGraph formattedGraph) {
-		String path = pathsOfGraphs.get(formattedGraph.getName());
-
-		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			fs.delete(new Path(path + ".v"), true);
-			fs.delete(new Path(path + ".e"), true);
-		} catch(IOException e) {
-			LOG.warn("Error occured while deleting files", e);
-		}
-	}
-
-
-	@Override
-	public String getPlatformName() {
-		return "giraph";
-	}
-
-
-	@Override
-	public void startup(BenchmarkRun benchmark) {
-		JobLogger.stopCoreLogging();
-		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
-		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
-	}
 
 	@Override
 	public BenchmarkMetrics finalize(BenchmarkRun benchmark) {
@@ -304,18 +258,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		JobLogger.startCoreLogging();
 		return new BenchmarkMetrics();
 	}
-
-	@Override
-	public void terminate(BenchmarkRun benchmark) {
-		JobLogger.collectYarnLogs(benchmark.getLogDir());
-	}
-
-
-	@Override
-	public JobModel getJobModel() {
-		return new JobModel(new Giraph());
-	}
-
 
 	@Override
 	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, java.nio.file.Path arcDirectory) {
@@ -330,6 +272,63 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		} catch(Exception e) {
 			LOG.error("Failed to enrich metrics.");
 		}
+	}
+
+	@Override
+	public void terminate(BenchmarkRun benchmark) {
+		JobLogger.collectYarnLogs(benchmark.getLogDir());
+	}
+
+	private void loadConfiguration() {
+		// Load Giraph-specific configuration
+		try {
+			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
+		} catch (InvalidConfigurationException e) {
+			// Fall-back to an empty properties file
+			LOG.info("Could not find or load benchmark.properties.");
+			benchmarkConfig = new PropertiesConfiguration();
+		}
+		hdfsDirectory = benchmarkConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
+	}
+
+
+	private void deleteOutput(String outputPath) {
+
+		try(FileSystem fs = FileSystem.get(new Configuration())) {
+			LOG.info(String.format("Deleting output directory: %s at hdfs.", outputPath));
+			fs.delete(new Path(outputPath), true);
+		} catch(IOException e) {
+			LOG.warn("Error occured while deleting files", e);
+		}
+	}
+
+	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
+							   Configuration destination, IntConfOption destinationOption) throws InvalidConfigurationException {
+		if (source.containsKey(sourceProperty)) {
+			destinationOption.set(destination, ConfigurationUtil.getInteger(source, sourceProperty));
+		} else {
+			LOG.warn(sourceProperty + " is not configured, defaulting to " +
+					destinationOption.getDefaultValue() + ".");
+		}
+	}
+
+	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
+											  Configuration destination) {
+		org.apache.commons.configuration.Configuration giraphOptions = source.subset("platform.giraph.options");
+		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
+			String option = optionIterator.next();
+			destination.set("giraph." + option, giraphOptions.getString(option));
+		}
+	}
+
+	@Override
+	public JobModel getJobModel() {
+		return new JobModel(new Giraph());
+	}
+
+	@Override
+	public String getPlatformName() {
+		return "giraph";
 	}
 
 }
