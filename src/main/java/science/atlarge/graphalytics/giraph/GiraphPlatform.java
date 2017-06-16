@@ -16,6 +16,7 @@
 package science.atlarge.graphalytics.giraph;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import nl.tudelft.granula.archiver.PlatformArchive;
 import nl.tudelft.granula.modeller.job.JobModel;
 import nl.tudelft.granula.modeller.platform.Giraph;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
+import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
 import science.atlarge.graphalytics.report.result.BenchmarkRunResult;
@@ -320,9 +322,11 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		try {
 			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
 			JSONObject processGraph = platformArchive.operation("Execute");
-			Integer procTime = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
 			BenchmarkMetrics metrics = benchmarkRunResult.getMetrics();
-			metrics.setProcessingTime(procTime);
+
+			Integer procTimeMS = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
+			BigDecimal procTimeS = (new BigDecimal(procTimeMS)).divide(new BigDecimal(1000), 3, BigDecimal.ROUND_CEILING);
+			metrics.setProcessingTime(new BenchmarkMetric(procTimeS, "s"));
 		} catch(Exception e) {
 			LOG.error("Failed to enrich metrics.");
 		}
