@@ -17,14 +17,20 @@ package science.atlarge.graphalytics.giraph;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import nl.tudelft.granula.archiver.PlatformArchive;
 import nl.tudelft.granula.modeller.job.JobModel;
 import nl.tudelft.granula.modeller.platform.Giraph;
+import nl.tudelft.granula.util.FileUtil;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
@@ -253,10 +259,55 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 
 	@Override
-	public BenchmarkMetrics finalize(BenchmarkRun benchmark) {
+	public BenchmarkMetrics finalize(BenchmarkRun benchmarkRun) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
-		return new BenchmarkMetrics();
+		JobLogger.collectYarnLogs(benchmarkRun.getLogDir());
+		LOG.info("Extracting performance metrics from logs.");
+		java.nio.file.Path platformLogPath = benchmarkRun.getLogDir().resolve("platform");
+
+		final List<Double> superstepTimes = new ArrayList<>();
+
+		try {
+			Files.walkFileTree(platformLogPath, new SimpleFileVisitor<java.nio.file.Path>() {
+				@Override
+				public FileVisitResult visitFile(java.nio.file.Path file, BasicFileAttributes attrs) throws IOException {
+					String logs = FileUtil.readFile(file);
+
+					LOG.info(String.format("Parsing logs at %s.", file.toAbsolutePath()));
+					for (String line : logs.split("\n")) {
+						if (line.contains("MasterThread  - superstep")) {
+							Pattern regex = Pattern.compile(
+									".*MasterThread  - superstep (\\d*): Took ([+-]?([0-9]*[.])?[0-9]+) seconds..*");
+							Matcher matcher = regex.matcher(line);
+							matcher.find();
+							superstepTimes.add(Double.parseDouble(matcher.group(2)));
+
+							LOG.info(String.format("Extracting performance metrics from superstep %s -> %s s", matcher.group(1), matcher.group(2)));
+						}
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (superstepTimes.size() != 0) {
+			Double procTime = 0.0;
+			for (Double superstepTime : superstepTimes) {
+				procTime += superstepTime;
+			}
+
+			BenchmarkMetrics metrics = new BenchmarkMetrics();
+			BigDecimal procTimeS = (new BigDecimal(procTime)).setScale(3, RoundingMode.CEILING);
+			metrics.setProcessingTime(new BenchmarkMetric(procTimeS, "s"));
+
+			return metrics;
+		} else {
+			LOG.error("Failed to find any metrics regarding superstep runtime.");
+			return new BenchmarkMetrics();
+		}
 	}
 
 	@Override
@@ -276,7 +327,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 	@Override
 	public void terminate(BenchmarkRun benchmark) {
-		JobLogger.collectYarnLogs(benchmark.getLogDir());
+
 	}
 
 	private void loadConfiguration() {
