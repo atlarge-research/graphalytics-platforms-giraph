@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform.operation;
+package science.atlarge.granula.modeller.platform.operation;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.rule.derivation.ColorDerivation;
-import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
-import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import science.atlarge.granula.modeller.rule.linking.EmptyLinking;
+import science.atlarge.granula.modeller.rule.linking.IdentifierParentLinking;
+import science.atlarge.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class WorkerPostCompute extends RealtimeOperationModel {
+public class WorkerPreCompute extends RealtimeOperationModel {
 
-    public WorkerPostCompute() {
-        super(Type.Worker, Type.PostCompute);
+    public WorkerPreCompute() {
+        super(Type.Worker, Type.PreCompute);
     }
 
     public void loadRules() {
@@ -35,8 +34,7 @@ public class WorkerPostCompute extends RealtimeOperationModel {
 //        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
         addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
 
-
-        String summary = "PostCompute.";
+        String summary = "PreCompute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }
 }

@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform.operation;
+package science.atlarge.granula.modeller.platform.operation;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import science.atlarge.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class WorkerPostApplication extends RealtimeOperationModel {
+public class GiraphSetup extends RealtimeOperationModel {
 
-    public WorkerPostApplication() {
-        super(Type.Worker, Type.PostApplication);
+    public GiraphSetup() {
+        super(Type.Giraph, Type.Setup);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Postpare));
-//        addLinkingRule(new EmptyLinking());
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Job));
 
-        String summary = "PostApplication.";
+        String summary = "Setup.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }
 }

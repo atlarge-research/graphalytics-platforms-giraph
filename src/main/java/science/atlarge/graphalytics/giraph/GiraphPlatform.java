@@ -27,10 +27,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import nl.tudelft.granula.archiver.PlatformArchive;
-import nl.tudelft.granula.modeller.job.JobModel;
-import nl.tudelft.granula.modeller.platform.Giraph;
-import nl.tudelft.granula.util.FileUtil;
+import science.atlarge.granula.archiver.PlatformArchive;
+import science.atlarge.granula.modeller.job.JobModel;
+import science.atlarge.granula.modeller.platform.Giraph;
+import science.atlarge.granula.util.FileUtil;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;

@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform.operation;
+package science.atlarge.granula.modeller.platform.operation;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.IdentifierParentLinking;
-import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import science.atlarge.granula.modeller.rule.linking.EmptyLinking;
+import science.atlarge.granula.modeller.rule.linking.UniqueParentLinking;
 
-public class WorkerCompute extends RealtimeOperationModel {
+public class WorkerPostApplication extends RealtimeOperationModel {
 
-    public WorkerCompute() {
-        super(Type.Worker, Type.Compute);
+    public WorkerPostApplication() {
+        super(Type.Worker, Type.PostApplication);
     }
 
     public void loadRules() {
         super.loadRules();
+        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Postpare));
+//        addLinkingRule(new EmptyLinking());
 
-//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
-        addLinkingRule(new IdentifierParentLinking(Type.Worker, Type.Equal, Type.LocalSuperstep, Type.Equal));
-        String summary = "Compute.";
+        String summary = "PostApplication.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }
 }

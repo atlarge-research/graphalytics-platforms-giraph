@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.rule.linking;
+package science.atlarge.granula.modeller.rule.linking;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.platform.operation.Operation;
-import nl.tudelft.granula.modeller.entity.BasicType;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.platform.operation.Operation;
+import science.atlarge.granula.modeller.entity.BasicType;
 
 import java.util.ArrayList;
 import java.util.List;

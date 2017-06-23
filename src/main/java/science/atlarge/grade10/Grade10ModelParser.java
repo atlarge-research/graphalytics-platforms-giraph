@@ -1,14 +1,11 @@
-package nl.tudelft.grade10;
+package science.atlarge.grade10;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.job.Job;
-import nl.tudelft.granula.modeller.job.Overview;
-import nl.tudelft.granula.modeller.platform.Platform;
-import nl.tudelft.granula.modeller.platform.operation.Operation;
-import nl.tudelft.granula.modeller.rule.derivation.DerivationRule;
-
-import java.util.HashMap;
-import java.util.Map;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.job.Job;
+import science.atlarge.granula.modeller.job.Overview;
+import science.atlarge.granula.modeller.platform.Platform;
+import science.atlarge.granula.modeller.platform.operation.Operation;
+import science.atlarge.granula.modeller.rule.derivation.DerivationRule;
 
 public class Grade10ModelParser extends DerivationRule {
 
