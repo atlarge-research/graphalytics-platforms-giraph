@@ -178,7 +178,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public boolean run(BenchmarkRun benchmark) throws PlatformExecutionException {
+	public void run(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
@@ -254,7 +254,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
 
-		return true;
 	}
 
 
