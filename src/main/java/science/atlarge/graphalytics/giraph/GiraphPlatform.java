@@ -21,6 +21,7 @@ import java.math.RoundingMode;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -45,7 +46,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -139,10 +139,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		FileSystem fs = FileSystem.get(new Configuration());
 
 		LOG.debug("- Uploading vertex list");
-		fs.copyFromLocalFile(new Path(formattedGraph.getVertexFilePath()), new Path(uploadPath + ".v"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getVertexFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".v"));
 
 		LOG.debug("- Uploading edge list");
-		fs.copyFromLocalFile(new Path(formattedGraph.getEdgeFilePath()), new Path(uploadPath + ".e"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getEdgeFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".e"));
 
 		fs.close();
 
@@ -155,8 +155,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		String path = pathsOfGraphs.get(formattedGraph.getName());
 
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			fs.delete(new Path(path + ".v"), true);
-			fs.delete(new Path(path + ".e"), true);
+			fs.delete(new org.apache.hadoop.fs.Path(path + ".v"), true);
+			fs.delete(new org.apache.hadoop.fs.Path(path + ".e"), true);
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
@@ -242,8 +242,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			if(benchmark.isOutputRequired()){
 					FileSystem fs = FileSystem.get(new Configuration());
-					fs.copyToLocalFile(false, new Path(hdfsOutputPath),
-							new Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
+					fs.copyToLocalFile(false, new org.apache.hadoop.fs.Path(hdfsOutputPath),
+							new org.apache.hadoop.fs.Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
 					fs.close();
 			}
 			deleteOutput(hdfsOutputPath);
@@ -265,14 +265,14 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		JobLogger.startCoreLogging();
 		JobLogger.collectYarnLogs(benchmarkRun.getLogDir());
 		LOG.info("Extracting performance metrics from logs.");
-		java.nio.file.Path platformLogPath = benchmarkRun.getLogDir().resolve("platform");
+		Path platformLogPath = benchmarkRun.getLogDir().resolve("platform");
 
 		final List<Double> superstepTimes = new ArrayList<>();
 
 		try {
-			Files.walkFileTree(platformLogPath, new SimpleFileVisitor<java.nio.file.Path>() {
+			Files.walkFileTree(platformLogPath, new SimpleFileVisitor<Path>() {
 				@Override
-				public FileVisitResult visitFile(java.nio.file.Path file, BasicFileAttributes attrs) throws IOException {
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 					String logs = FileUtil.readFile(file);
 
 					LOG.info(String.format("Parsing logs at %s.", file.toAbsolutePath()));
@@ -312,7 +312,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, java.nio.file.Path arcDirectory) {
+	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, Path arcDirectory) {
 		try {
 			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
 			JSONObject processGraph = platformArchive.operation("Execute");
@@ -329,7 +329,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	@Override
 	public void terminate(BenchmarkRun benchmarkRun) {
 
-		java.nio.file.Path driverPath = benchmarkRun.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
+		Path driverPath = benchmarkRun.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
 		List<String> appIds = JobLogger.getYarnAppIds(driverPath);
 
 		for (String appId : appIds) {
@@ -372,7 +372,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
 			LOG.info(String.format("Deleting output directory: %s at hdfs.", outputPath));
-			fs.delete(new Path(outputPath), true);
+			fs.delete(new org.apache.hadoop.fs.Path(outputPath), true);
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
