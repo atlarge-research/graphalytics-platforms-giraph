@@ -27,10 +27,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.hadoop.yarn.client.cli.ApplicationCLI;
 import science.atlarge.granula.archiver.PlatformArchive;
 import science.atlarge.granula.modeller.job.JobModel;
 import science.atlarge.granula.modeller.platform.Giraph;
 import science.atlarge.granula.util.FileUtil;
+import science.atlarge.graphalytics.configuration.GraphalyticsExecutionException;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
@@ -325,8 +327,32 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void terminate(BenchmarkRun benchmark) {
+	public void terminate(BenchmarkRun benchmarkRun) {
 
+		java.nio.file.Path driverPath = benchmarkRun.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
+		List<String> appIds = JobLogger.getYarnAppIds(driverPath);
+
+		for (String appId : appIds) {
+			LOG.info("Terminating Yarn job: " + appId);
+			String[] args = {"application", "-kill", appId.trim()};
+			try {
+				ApplicationCLI applicationCLI = new ApplicationCLI();
+				applicationCLI.setSysOutPrintStream(System.out);
+				applicationCLI.setSysErrPrintStream(System.err);
+
+				int success = ToolRunner.run(applicationCLI, args);
+				applicationCLI.stop();
+
+				if(success == 0) {
+					LOG.info("Terminated Yarn job: " + appId);
+				} else {
+					throw new GraphalyticsExecutionException("Failed to terminate task: signal=" + success);
+				}
+
+			} catch (Exception e) {
+				throw new GraphalyticsExecutionException("Failed to terminate task", e);
+			}
+		}
 	}
 
 	private void loadConfiguration() {
