@@ -15,14 +15,27 @@
 # limitations under the License.
 #
 
-
 # Ensure the configuration file exists
 if [ ! -f "$config/platform.properties" ]; then
 	echo "Missing mandatory configuration file: $config/platform.properties" >&2
 	exit 1
 fi
 
-# Get the first specification of platform.hadoop.home
+
+# Set library jar
+export LIBRARY_JAR=`ls lib/graphalytics-*default*.jar`
+GRANULA_ENABLED=$(grep -E "^benchmark.run.granula.enabled[	 ]*[:=]" $config/granula.properties | sed 's/benchmark.run.granula.enabled[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
+if [ "$GRANULA_ENABLED" = "true" ] ; then
+ if ! find lib -name "graphalytics-platforms-*-granula.jar" | grep -q '.'; then
+    echo "Failed to find the library jar with Granula plugin" >&2
+    exit 1
+ else
+    export LIBRARY_JAR=`ls lib/graphalytics-platforms-*-granula.jar`
+ fi
+fi
+
+
+# Construct the classpath
 hadoophome=$(grep -E "^platform.hadoop.home[	 ]*[:=]" $config/platform.properties | sed 's/platform.hadoop.home[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
 if [ ! -f "$hadoophome/bin/hadoop" ]; then
 	echo "Invalid definition of platform.hadoop.home: $hadoophome" >&2
@@ -31,22 +44,5 @@ if [ ! -f "$hadoophome/bin/hadoop" ]; then
 fi
 echo "Using HADOOP_HOME=$hadoophome"
 export HADOOP_HOME=$hadoophome
-
-# Construct the classpath
 platform_classpath="$($HADOOP_HOME/bin/hadoop classpath)"
 export platform_classpath=$platform_classpath
-
-export platform="giraph"
-
-
-# Set Library jar
-export LIBRARY_JAR=`ls lib/graphalytics-platforms-giraph-[0-9.]*-default.jar`
-GRANULA_ENABLED=$(grep -E "^benchmark.run.granula.enabled[	 ]*[:=]" $config/granula.properties | sed 's/benchmark.run.granula.enabled[\t ]*[:=][\t ]*\([^\t ]*\).*/\1/g' | head -n 1)
-if [ "$GRANULA_ENABLED" = "true" ] ; then
- if ! find lib -name "graphalytics-platforms-giraph-*-granula.jar" | grep -q '.'; then
-    echo "Granula cannot be enabled due to missing library jar" >&2
- else
-    export LIBRARY_JAR=`ls lib/graphalytics-platforms-giraph-*-granula.jar`
- fi
-fi
-
