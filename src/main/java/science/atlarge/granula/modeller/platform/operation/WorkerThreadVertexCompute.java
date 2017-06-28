@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform.operation;
+package science.atlarge.granula.modeller.platform.operation;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
-import nl.tudelft.granula.modeller.rule.linking.UniqueParentLinking;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import science.atlarge.granula.modeller.rule.linking.EmptyLinking;
 
-public class WorkerPreApplication extends RealtimeOperationModel {
+public class WorkerThreadVertexCompute extends RealtimeOperationModel {
 
-    public WorkerPreApplication() {
-        super(Type.Worker, Type.PreApplication);
+    public WorkerThreadVertexCompute() {
+        super(Type.WorkerThread, Type.VertexCompute);
     }
 
     public void loadRules() {
         super.loadRules();
-        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Prepare));
-//addLinkingRule(new EmptyLinking());
-        String summary = "PreApplication.";
+
+//        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
+//        addLinkingRule(new AdvancedIdentifierParentLinking(Type.Worker, Type.Ladder, Type.LocalSuperstep, Type.Equal));
+        addLinkingRule(new EmptyLinking());
+
+        String summary = "VertexCompute.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
     }
 }

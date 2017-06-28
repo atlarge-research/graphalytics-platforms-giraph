@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform.operation;
+package science.atlarge.granula.modeller.platform.operation;
 
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.rule.derivation.SimpleSummaryDerivation;
-import nl.tudelft.granula.modeller.rule.linking.AdvancedIdentifierParentLinking;
-import nl.tudelft.granula.modeller.rule.linking.EmptyLinking;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.platform.operation.RealtimeOperationModel;
+import science.atlarge.granula.modeller.rule.derivation.SimpleSummaryDerivation;
+import science.atlarge.granula.modeller.rule.linking.EmptyLinking;
+import science.atlarge.granula.modeller.rule.linking.UniqueParentLinking;
+import science.atlarge.granula.modeller.rule.visual.TableVisualization;
 
-public class WorkerThreadVertexCompute extends RealtimeOperationModel {
+public class BspSuperstep extends RealtimeOperationModel {
 
-    public WorkerThreadVertexCompute() {
-        super(Type.WorkerThread, Type.VertexCompute);
+    public BspSuperstep() {
+        super(Type.Worker, Type.Superstep);
     }
 
     public void loadRules() {
         super.loadRules();
-
 //        addLinkingRule(new UniqueParentLinking(Type.Giraph, Type.Execute));
-//        addLinkingRule(new AdvancedIdentifierParentLinking(Type.Worker, Type.Ladder, Type.LocalSuperstep, Type.Equal));
         addLinkingRule(new EmptyLinking());
-
-        String summary = "VertexCompute.";
+        String summary = "BspSuperstep.";
         addInfoDerivation(new SimpleSummaryDerivation(11, summary));
+
     }
+
 }

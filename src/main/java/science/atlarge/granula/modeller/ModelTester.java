@@ -1,10 +1,10 @@
-package nl.tudelft.granula.modeller;
+package science.atlarge.granula.modeller;
 
-import nl.tudelft.granula.archiver.GranulaExecutor;
-import nl.tudelft.granula.modeller.entity.Execution;
-import nl.tudelft.granula.modeller.job.JobModel;
-import nl.tudelft.granula.util.FileUtil;
-import nl.tudelft.granula.util.json.JsonUtil;
+import science.atlarge.granula.archiver.GranulaExecutor;
+import science.atlarge.granula.modeller.entity.Execution;
+import science.atlarge.granula.modeller.job.JobModel;
+import science.atlarge.granula.util.FileUtil;
+import science.atlarge.granula.util.json.JsonUtil;
 import science.atlarge.graphalytics.granula.GranulaPlugin;
 
 import java.nio.file.Paths;

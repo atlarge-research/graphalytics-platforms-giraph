@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package nl.tudelft.granula.modeller.platform;
+package science.atlarge.granula.modeller.platform;
 
-import nl.tudelft.grade10.Grade10ModelParser;
-import nl.tudelft.granula.modeller.Type;
-import nl.tudelft.granula.modeller.job.Job;
-import nl.tudelft.granula.modeller.job.Overview;
-import nl.tudelft.granula.modeller.platform.info.BasicInfo;
-import nl.tudelft.granula.modeller.platform.info.Source;
-import nl.tudelft.granula.modeller.platform.operation.*;
-import nl.tudelft.granula.modeller.platform.operation.GiraphJob;
-import nl.tudelft.granula.modeller.rule.derivation.DerivationRule;
-import nl.tudelft.granula.modeller.rule.extraction.GiraphExtractionRule;
-import nl.tudelft.granula.modeller.rule.filling.UniqueOperationFilling;
+import science.atlarge.grade10.Grade10ModelParser;
+import science.atlarge.granula.modeller.Type;
+import science.atlarge.granula.modeller.job.Job;
+import science.atlarge.granula.modeller.job.Overview;
+import science.atlarge.granula.modeller.platform.operation.*;
+import science.atlarge.granula.modeller.platform.operation.GiraphJob;
+import science.atlarge.granula.modeller.rule.derivation.DerivationRule;
+import science.atlarge.granula.modeller.rule.extraction.GiraphExtractionRule;
+import science.atlarge.granula.modeller.rule.filling.UniqueOperationFilling;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Giraph extends PlatformModel {

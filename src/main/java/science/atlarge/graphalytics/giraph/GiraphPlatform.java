@@ -16,15 +16,26 @@
 package science.atlarge.graphalytics.giraph;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import nl.tudelft.granula.archiver.PlatformArchive;
-import nl.tudelft.granula.modeller.job.JobModel;
-import nl.tudelft.granula.modeller.platform.Giraph;
+import org.apache.hadoop.yarn.client.cli.ApplicationCLI;
+import science.atlarge.granula.archiver.PlatformArchive;
+import science.atlarge.granula.modeller.job.JobModel;
+import science.atlarge.granula.modeller.platform.Giraph;
+import science.atlarge.granula.util.FileUtil;
+import science.atlarge.graphalytics.configuration.GraphalyticsExecutionException;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
+import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
 import science.atlarge.graphalytics.report.result.BenchmarkRunResult;
@@ -35,7 +46,6 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.giraph.conf.IntConfOption;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -113,20 +123,14 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		loadConfiguration();
 	}
 
-	private void loadConfiguration() {
-		// Load Giraph-specific configuration
-		try {
-			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
-		} catch (InvalidConfigurationException e) {
-			// Fall-back to an empty properties file
-			LOG.info("Could not find or load benchmark.properties.");
-			benchmarkConfig = new PropertiesConfiguration();
-		}
-		hdfsDirectory = benchmarkConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
+
+	@Override
+	public void verifySetup() {
+
 	}
 
 	@Override
-	public void uploadGraph(FormattedGraph formattedGraph) throws Exception {
+	public void loadGraph(FormattedGraph formattedGraph) throws Exception {
 		LOG.info("Uploading graph \"{}\" to HDFS", formattedGraph.getName());
 
 		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
@@ -135,10 +139,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 		FileSystem fs = FileSystem.get(new Configuration());
 
 		LOG.debug("- Uploading vertex list");
-		fs.copyFromLocalFile(new Path(formattedGraph.getVertexFilePath()), new Path(uploadPath + ".v"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getVertexFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".v"));
 
 		LOG.debug("- Uploading edge list");
-		fs.copyFromLocalFile(new Path(formattedGraph.getEdgeFilePath()), new Path(uploadPath + ".e"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getEdgeFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".e"));
 
 		fs.close();
 
@@ -147,8 +151,15 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void prepare(BenchmarkRun benchmarkRun) {
+	public void deleteGraph(FormattedGraph formattedGraph) {
+		String path = pathsOfGraphs.get(formattedGraph.getName());
 
+		try(FileSystem fs = FileSystem.get(new Configuration())) {
+			fs.delete(new org.apache.hadoop.fs.Path(path + ".v"), true);
+			fs.delete(new org.apache.hadoop.fs.Path(path + ".e"), true);
+		} catch(IOException e) {
+			LOG.warn("Error occured while deleting files", e);
+		}
 	}
 
 	private void setupGraph(FormattedGraph formattedGraph) {
@@ -157,7 +168,19 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public boolean execute(BenchmarkRun benchmark) throws PlatformExecutionException {
+	public void prepare(BenchmarkRun benchmarkRun) {
+
+	}
+
+	@Override
+	public void startup(BenchmarkRun benchmark) {
+		JobLogger.stopCoreLogging();
+		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
+		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
+	}
+
+	@Override
+	public void run(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
@@ -219,8 +242,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			if(benchmark.isOutputRequired()){
 					FileSystem fs = FileSystem.get(new Configuration());
-					fs.copyToLocalFile(false, new Path(hdfsOutputPath),
-							new Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
+					fs.copyToLocalFile(false, new org.apache.hadoop.fs.Path(hdfsOutputPath),
+							new org.apache.hadoop.fs.Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
 					fs.close();
 			}
 			deleteOutput(hdfsOutputPath);
@@ -233,21 +256,130 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			throw new PlatformExecutionException("Giraph job completed with exit code = " + result);
 		}
 
-		return true;
 	}
+
+
+	@Override
+	public BenchmarkMetrics finalize(BenchmarkRun benchmarkRun) {
+		JobLogger.stopPlatformLogging();
+		JobLogger.startCoreLogging();
+		JobLogger.collectYarnLogs(benchmarkRun.getLogDir());
+		LOG.info("Extracting performance metrics from logs.");
+		Path platformLogPath = benchmarkRun.getLogDir().resolve("platform");
+
+		final List<Double> superstepTimes = new ArrayList<>();
+
+		try {
+			Files.walkFileTree(platformLogPath, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					String logs = FileUtil.readFile(file);
+
+					LOG.info(String.format("Parsing logs at %s.", file.toAbsolutePath()));
+					for (String line : logs.split("\n")) {
+						if (line.contains("MasterThread  - superstep")) {
+							Pattern regex = Pattern.compile(
+									".*MasterThread  - superstep (\\d*): Took ([+-]?([0-9]*[.])?[0-9]+) seconds..*");
+							Matcher matcher = regex.matcher(line);
+							matcher.find();
+							superstepTimes.add(Double.parseDouble(matcher.group(2)));
+
+							LOG.info(String.format("Extracting performance metrics from superstep %s -> %s s", matcher.group(1), matcher.group(2)));
+						}
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		if (superstepTimes.size() != 0) {
+			Double procTime = 0.0;
+			for (Double superstepTime : superstepTimes) {
+				procTime += superstepTime;
+			}
+
+			BenchmarkMetrics metrics = new BenchmarkMetrics();
+			BigDecimal procTimeS = (new BigDecimal(procTime)).setScale(3, RoundingMode.CEILING);
+			metrics.setProcessingTime(new BenchmarkMetric(procTimeS, "s"));
+
+			return metrics;
+		} else {
+			LOG.error("Failed to find any metrics regarding superstep runtime.");
+			return new BenchmarkMetrics();
+		}
+	}
+
+	@Override
+	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, Path arcDirectory) {
+		try {
+			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
+			JSONObject processGraph = platformArchive.operation("Execute");
+			BenchmarkMetrics metrics = benchmarkRunResult.getMetrics();
+
+			Integer procTimeMS = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
+			BigDecimal procTimeS = (new BigDecimal(procTimeMS)).divide(new BigDecimal(1000), 3, BigDecimal.ROUND_CEILING);
+			metrics.setProcessingTime(new BenchmarkMetric(procTimeS, "s"));
+		} catch(Exception e) {
+			LOG.error("Failed to enrich metrics.");
+		}
+	}
+
+	@Override
+	public void terminate(BenchmarkRun benchmarkRun) {
+
+		Path driverPath = benchmarkRun.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
+		List<String> appIds = JobLogger.getYarnAppIds(driverPath);
+
+		for (String appId : appIds) {
+			LOG.info("Terminating Yarn job: " + appId);
+			String[] args = {"application", "-kill", appId.trim()};
+			try {
+				ApplicationCLI applicationCLI = new ApplicationCLI();
+				applicationCLI.setSysOutPrintStream(System.out);
+				applicationCLI.setSysErrPrintStream(System.err);
+
+				int success = ToolRunner.run(applicationCLI, args);
+				applicationCLI.stop();
+
+				if(success == 0) {
+					LOG.info("Terminated Yarn job: " + appId);
+				} else {
+					throw new GraphalyticsExecutionException("Failed to terminate task: signal=" + success);
+				}
+
+			} catch (Exception e) {
+				throw new GraphalyticsExecutionException("Failed to terminate task", e);
+			}
+		}
+	}
+
+	private void loadConfiguration() {
+		// Load Giraph-specific configuration
+		try {
+			benchmarkConfig = ConfigurationUtil.loadConfiguration(BENCHMARK_PROPERTIES_FILE);
+		} catch (InvalidConfigurationException e) {
+			// Fall-back to an empty properties file
+			LOG.info("Could not find or load benchmark.properties.");
+			benchmarkConfig = new PropertiesConfiguration();
+		}
+		hdfsDirectory = benchmarkConfig.getString(HDFS_DIRECTORY_KEY, HDFS_DIRECTORY);
+	}
+
 
 	private void deleteOutput(String outputPath) {
 
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
 			LOG.info(String.format("Deleting output directory: %s at hdfs.", outputPath));
-			fs.delete(new Path(outputPath), true);
+			fs.delete(new org.apache.hadoop.fs.Path(outputPath), true);
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
 	}
 
 	private void transferIfSet(org.apache.commons.configuration.Configuration source, String sourceProperty,
-			Configuration destination, IntConfOption destinationOption) throws InvalidConfigurationException {
+							   Configuration destination, IntConfOption destinationOption) throws InvalidConfigurationException {
 		if (source.containsKey(sourceProperty)) {
 			destinationOption.set(destination, ConfigurationUtil.getInteger(source, sourceProperty));
 		} else {
@@ -257,7 +389,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	private static void transferGiraphOptions(org.apache.commons.configuration.Configuration source,
-			Configuration destination) {
+											  Configuration destination) {
 		org.apache.commons.configuration.Configuration giraphOptions = source.subset("platform.giraph.options");
 		for (Iterator<String> optionIterator = giraphOptions.getKeys(); optionIterator.hasNext(); ) {
 			String option = optionIterator.next();
@@ -266,61 +398,13 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void deleteGraph(FormattedGraph formattedGraph) {
-		String path = pathsOfGraphs.get(formattedGraph.getName());
-
-		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			fs.delete(new Path(path + ".v"), true);
-			fs.delete(new Path(path + ".e"), true);
-		} catch(IOException e) {
-			LOG.warn("Error occured while deleting files", e);
-		}
-	}
-
-
-	@Override
-	public String getPlatformName() {
-		return "giraph";
-	}
-
-
-	@Override
-	public void preprocess(BenchmarkRun benchmark) {
-		JobLogger.stopCoreLogging();
-		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
-		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
-	}
-
-	@Override
-	public BenchmarkMetrics postprocess(BenchmarkRun benchmark) {
-		JobLogger.stopPlatformLogging();
-		JobLogger.startCoreLogging();
-		return new BenchmarkMetrics();
-	}
-
-	@Override
-	public void cleanup(BenchmarkRun benchmark) {
-		JobLogger.collectYarnLogs(benchmark.getLogDir());
-	}
-
-
-	@Override
 	public JobModel getJobModel() {
 		return new JobModel(new Giraph());
 	}
 
-
 	@Override
-	public void enrichMetrics(BenchmarkRunResult benchmarkRunResult, java.nio.file.Path arcDirectory) {
-		try {
-			PlatformArchive platformArchive = PlatformArchive.readArchive(arcDirectory);
-			JSONObject processGraph = platformArchive.operation("Execute");
-			Integer procTime = Integer.parseInt(platformArchive.info(processGraph, "Duration"));
-			BenchmarkMetrics metrics = benchmarkRunResult.getMetrics();
-			metrics.setProcessingTime(procTime);
-		} catch(Exception e) {
-			LOG.error("Failed to enrich metrics.");
-		}
+	public String getPlatformName() {
+		return "giraph";
 	}
 
 }
