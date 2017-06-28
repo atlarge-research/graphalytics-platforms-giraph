@@ -1,2 +1,0 @@
-2016-02-17 02:18:29,494 [main] INFO [GiraphJob (run(202))] GRANULA InfoName:StartTime InfoValue:1455671909494 Timestamp:1455671909494 RecordUuid:8977754276003083230 OperationUuid:5347795518402514071 ActorType:Giraph ActorId:Id.Unique MissionType:Job MissionId:Id.Unique
-2016-02-17 02:19:52,919 [main] INFO [GiraphJob (run(289))] GRANULA InfoName:EndTime InfoValue:1455671992918 Timestamp:1455671992918 RecordUuid:8780932025043499745 OperationUuid:5347795518402514071 ActorType:Giraph ActorId:Id.Unique MissionType:Job MissionId:Id.Unique
