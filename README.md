@@ -42,3 +42,6 @@ Adjust the Giraph configurations in `config/platform.properties`:
  - `platform.giraph.job.worker-count`: Set to an appropriate number of workers for the Hadoop cluster. Note that Giraph launches an additional master process.
  - `platform.hadoop.home`: Set to the root of your Hadoop installation (`$HADOOP_HOME`).
 
+### Known Issues
+* Benchmark reports will report `nan` as processing time when yarn log aggregation is off. The solution is to enable log aggregation in the `yarn-site.xml` file by setting `yarn.log-aggregation-enable` to true.
+
