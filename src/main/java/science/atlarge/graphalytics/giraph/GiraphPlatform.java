@@ -35,6 +35,7 @@ import science.atlarge.granula.modeller.platform.Giraph;
 import science.atlarge.granula.util.FileUtil;
 import science.atlarge.graphalytics.configuration.GraphalyticsExecutionException;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
+import science.atlarge.graphalytics.domain.graph.LoadedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetric;
 import science.atlarge.graphalytics.report.result.BenchmarkMetrics;
 import science.atlarge.graphalytics.domain.algorithms.Algorithm;
@@ -111,7 +112,6 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	 */
 	public static final String HDFS_DIRECTORY = "graphalytics";
 
-	private Map<String, String> pathsOfGraphs = new HashMap<>();
 	private org.apache.commons.configuration.Configuration benchmarkConfig;
 	private String hdfsDirectory;
 
@@ -130,41 +130,34 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void loadGraph(FormattedGraph formattedGraph) throws Exception {
+	public LoadedGraph loadGraph(FormattedGraph formattedGraph) throws Exception {
 		LOG.info("Uploading graph \"{}\" to HDFS", formattedGraph.getName());
 
 		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
+		org.apache.hadoop.fs.Path vertexFilePath = new org.apache.hadoop.fs.Path(uploadPath + ".v");
+		org.apache.hadoop.fs.Path edgeFilePath =  new org.apache.hadoop.fs.Path(uploadPath + ".e");
 
 		// Upload the graph to HDFS
 		FileSystem fs = FileSystem.get(new Configuration());
 
 		LOG.debug("- Uploading vertex list");
-		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getVertexFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".v"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getVertexFilePath()), vertexFilePath);
 
 		LOG.debug("- Uploading edge list");
-		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getEdgeFilePath()), new org.apache.hadoop.fs.Path(uploadPath + ".e"));
+		fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(formattedGraph.getEdgeFilePath()), edgeFilePath);
 
 		fs.close();
-
-		// Track available datasets in a map
-		pathsOfGraphs.put(formattedGraph.getName(), uploadPath);
+		return new LoadedGraph(formattedGraph, vertexFilePath.toString(), edgeFilePath.toString());
 	}
 
 	@Override
-	public void deleteGraph(FormattedGraph formattedGraph) {
-		String path = pathsOfGraphs.get(formattedGraph.getName());
-
+	public void deleteGraph(LoadedGraph loadedGraph) {
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			fs.delete(new org.apache.hadoop.fs.Path(path + ".v"), true);
-			fs.delete(new org.apache.hadoop.fs.Path(path + ".e"), true);
+			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getVertexFilePath()), true);
+			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getEdgeFilePath()), true);
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
-	}
-
-	private void setupGraph(FormattedGraph formattedGraph) {
-		String uploadPath = Paths.get(hdfsDirectory, getPlatformName(), "input", formattedGraph.getName()).toString();
-		pathsOfGraphs.put(formattedGraph.getName(), uploadPath);
 	}
 
 	@Override
@@ -183,9 +176,8 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	public void run(BenchmarkRun benchmark) throws PlatformExecutionException {
 		Algorithm algorithm = benchmark.getAlgorithm();
 		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
+		LoadedGraph loadedGraph = benchmark.getLoadedGraph();
 		Object parameters = benchmark.getAlgorithmParameters();
-
-		setupGraph(formattedGraph);
 
 		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), formattedGraph.getName());
 
@@ -223,7 +215,9 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + formattedGraph.getName()).toString();
 			Configuration jobConf = new Configuration();
 
-			GiraphJob.INPUT_PATH.set(jobConf, pathsOfGraphs.get(formattedGraph.getName()));
+			GiraphJob.VERTEX_INPUT_PATH.set(jobConf, loadedGraph.getVertexFilePath().toString());
+			GiraphJob.EDGE_INPUT_PATH.set(jobConf, loadedGraph.getEdgeFilePath().toString());
+
 			GiraphJob.OUTPUT_PATH.set(jobConf, hdfsOutputPath);
 			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(benchmarkConfig, ZOOKEEPERADDRESS));
 

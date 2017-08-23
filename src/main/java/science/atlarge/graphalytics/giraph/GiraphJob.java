@@ -90,12 +90,19 @@ public abstract class GiraphJob extends Configured implements Tool {
 	/**
 	 * The configuration key for the input path of the Giraph job.
 	 */
-	public static final String INPUT_PATH_KEY = "graphalytics.giraphjob.input-path";
+	public static final String VERTEX_INPUT_PATH_KEY = "graphalytics.giraphjob.vertex-input-path";
+	public static final String EDGE_INPUT_PATH_KEY = "graphalytics.giraphjob.edge-input-path";
+
 	/**
-	 * The input path of the Giraph job.
+	 * The input vertex path of the Giraph job.
 	 */
-	public static final StrConfOption INPUT_PATH = new StrConfOption(INPUT_PATH_KEY,
-			"", "Giraph input path");
+	public static final StrConfOption VERTEX_INPUT_PATH = new StrConfOption(VERTEX_INPUT_PATH_KEY,
+			"", "Giraph vertex input path");
+	/**
+	 * The input vertex path of the Giraph job.
+	 */
+	public static final StrConfOption EDGE_INPUT_PATH = new StrConfOption(EDGE_INPUT_PATH_KEY,
+			"", "Giraph edge input path");
 
 	/**
 	 * The configuration key for the output path of the Giraph job.
@@ -122,7 +129,8 @@ public abstract class GiraphJob extends Configured implements Tool {
 	public static final StrConfOption JOB_ID = new StrConfOption(JOB_ID_KEY,
 			"", "Job Id");
 
-	private String inputPath;
+	private String vertexInputPath;
+	private String edgeInputPath;
 	private String outputPath;
 	private String zooKeeperAddress;
 	private int workerCount;
@@ -138,8 +146,11 @@ public abstract class GiraphJob extends Configured implements Tool {
 	}
 
 	private void loadConfiguration() {
-		if (INPUT_PATH.isDefaultValue(getConf())) {
-			throw new IllegalStateException("Missing mandatory configuration: " + INPUT_PATH_KEY);
+		if (VERTEX_INPUT_PATH.isDefaultValue(getConf())) {
+			throw new IllegalStateException("Missing mandatory configuration: " + VERTEX_INPUT_PATH);
+		}
+		if (EDGE_INPUT_PATH.isDefaultValue(getConf())) {
+			throw new IllegalStateException("Missing mandatory configuration: " + EDGE_INPUT_PATH);
 		}
 		if (OUTPUT_PATH.isDefaultValue(getConf())) {
 			throw new IllegalStateException("Missing mandatory configuration: " + OUTPUT_PATH_KEY);
@@ -152,7 +163,8 @@ public abstract class GiraphJob extends Configured implements Tool {
 		workerMemory = WORKER_MEMORY_MB.get(getConf());
 		workerHeap = WORKER_HEAP_MB.get(getConf());
 		workerCores = WORKER_CORES.get(getConf());
-		inputPath = INPUT_PATH.get(getConf());
+		vertexInputPath = VERTEX_INPUT_PATH.get(getConf());
+		edgeInputPath = EDGE_INPUT_PATH.get(getConf());
 		outputPath = OUTPUT_PATH.get(getConf());
 		zooKeeperAddress = ZOOKEEPER_ADDRESS.get(getConf());
 	}
@@ -178,13 +190,9 @@ public abstract class GiraphJob extends Configured implements Tool {
 		// Set the computation class
 		configuration.setComputationClass(getComputationClass());
 
-		// Prepare input paths
-		Path vertexInputPath = new Path(inputPath + ".v");
-		Path edgeInputPath = new Path(inputPath + ".e");
-
 		// Set input paths
-		GiraphFileInputFormat.addVertexInputPath(configuration, vertexInputPath);
-		GiraphFileInputFormat.addEdgeInputPath(configuration, edgeInputPath);
+		GiraphFileInputFormat.addVertexInputPath(configuration, new Path(vertexInputPath));
+		GiraphFileInputFormat.addEdgeInputPath(configuration, new Path(edgeInputPath));
 
 		// Set vertex/edge input format class
 		configuration.setVertexInputFormatClass(getVertexInputFormatClass());
