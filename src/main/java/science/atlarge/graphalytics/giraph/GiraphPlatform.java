@@ -34,6 +34,9 @@ import science.atlarge.granula.modeller.job.JobModel;
 import science.atlarge.granula.modeller.platform.Giraph;
 import science.atlarge.granula.util.FileUtil;
 import science.atlarge.graphalytics.configuration.GraphalyticsExecutionException;
+import science.atlarge.graphalytics.execution.BenchmarkRunSetup;
+import science.atlarge.graphalytics.execution.RunSpecification;
+import science.atlarge.graphalytics.execution.RuntimeSetup;
 import science.atlarge.graphalytics.domain.graph.FormattedGraph;
 import science.atlarge.graphalytics.domain.graph.LoadedGraph;
 import science.atlarge.graphalytics.report.result.BenchmarkMetric;
@@ -153,31 +156,38 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	@Override
 	public void deleteGraph(LoadedGraph loadedGraph) {
 		try(FileSystem fs = FileSystem.get(new Configuration())) {
-			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getVertexFilePath()), true);
-			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getEdgeFilePath()), true);
+			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getVertexPath()), true);
+			fs.delete(new org.apache.hadoop.fs.Path(loadedGraph.getEdgePath()), true);
 		} catch(IOException e) {
 			LOG.warn("Error occured while deleting files", e);
 		}
 	}
 
 	@Override
-	public void prepare(BenchmarkRun benchmarkRun) {
+	public void prepare(RunSpecification runSpecification) {
 
 	}
 
 	@Override
-	public void startup(BenchmarkRun benchmark) {
+	public void startup(RunSpecification runSpecification) {
 		JobLogger.stopCoreLogging();
-		LOG.info(String.format("Logging path at: %s", benchmark.getLogDir().resolve("platform").resolve("driver.logs")));
-		JobLogger.startPlatformLogging(benchmark.getLogDir().resolve("platform").resolve("driver.logs"));
+		BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
+
+		LOG.info(String.format("Logging path at: %s", benchmarkRunSetup.getLogDir().resolve("platform").resolve("driver.logs")));
+		JobLogger.startPlatformLogging(benchmarkRunSetup.getLogDir().resolve("platform").resolve("driver.logs"));
 	}
 
 	@Override
-	public void run(BenchmarkRun benchmark) throws PlatformExecutionException {
-		Algorithm algorithm = benchmark.getAlgorithm();
-		FormattedGraph formattedGraph = benchmark.getFormattedGraph();
-		LoadedGraph loadedGraph = benchmark.getLoadedGraph();
-		Object parameters = benchmark.getAlgorithmParameters();
+	public void run(RunSpecification runSpecification) throws PlatformExecutionException {
+
+		BenchmarkRun benchmarkRun = runSpecification.getBenchmarkRun();
+		BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
+		RuntimeSetup runtimeSetup = runSpecification.getRuntimeSetup();
+
+		Algorithm algorithm = benchmarkRun.getAlgorithm();
+		FormattedGraph formattedGraph = benchmarkRun.getFormattedGraph();
+		LoadedGraph loadedGraph = runtimeSetup.getLoadedGraph();
+		Object parameters = benchmarkRun.getAlgorithmParameters();
 
 		LOG.info("Executing algorithm \"{}\" on graph \"{}\".", algorithm.getName(), formattedGraph.getName());
 
@@ -212,11 +222,11 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 			// Create the job configuration using the Giraph properties file
 			String hdfsOutputPath = Paths.get(hdfsDirectory, getPlatformName(), "output",
-					benchmark.getId() + "_" + algorithm.getAcronym() + "-" + formattedGraph.getName()).toString();
+					benchmarkRun.getId() + "_" + algorithm.getAcronym() + "-" + formattedGraph.getName()).toString();
 			Configuration jobConf = new Configuration();
 
-			GiraphJob.VERTEX_INPUT_PATH.set(jobConf, loadedGraph.getVertexFilePath().toString());
-			GiraphJob.EDGE_INPUT_PATH.set(jobConf, loadedGraph.getEdgeFilePath().toString());
+			GiraphJob.VERTEX_INPUT_PATH.set(jobConf, loadedGraph.getVertexPath().toString());
+			GiraphJob.EDGE_INPUT_PATH.set(jobConf, loadedGraph.getEdgePath().toString());
 
 			GiraphJob.OUTPUT_PATH.set(jobConf, hdfsOutputPath);
 			GiraphJob.ZOOKEEPER_ADDRESS.set(jobConf, ConfigurationUtil.getString(benchmarkConfig, ZOOKEEPERADDRESS));
@@ -226,7 +236,7 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			transferIfSet(benchmarkConfig, JOB_HEAPSIZE, jobConf, GiraphJob.WORKER_HEAP_MB);
 			transferIfSet(benchmarkConfig, JOB_CORES, jobConf, GiraphJob.WORKER_CORES);
 
-			GiraphJob.JOB_ID.set(jobConf, benchmark.getId());
+			GiraphJob.JOB_ID.set(jobConf, benchmarkRun.getId());
 
 			transferGiraphOptions(benchmarkConfig, jobConf);
 
@@ -234,10 +244,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 			result = ToolRunner.run(jobConf, job, new String[0]);
 			// TODO: Clean up intermediate and output data, depending on some configuration.
 
-			if(benchmark.isOutputRequired()){
+			if(benchmarkRunSetup.isOutputRequired()){
 					FileSystem fs = FileSystem.get(new Configuration());
 					fs.copyToLocalFile(false, new org.apache.hadoop.fs.Path(hdfsOutputPath),
-							new org.apache.hadoop.fs.Path(benchmark.getOutputDir().toAbsolutePath().toString()), true);
+							new org.apache.hadoop.fs.Path(benchmarkRunSetup.getOutputDir().toAbsolutePath().toString()), true);
 					fs.close();
 			}
 			deleteOutput(hdfsOutputPath);
@@ -254,12 +264,17 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 
 
 	@Override
-	public BenchmarkMetrics finalize(BenchmarkRun benchmarkRun) {
+	public BenchmarkMetrics finalize(RunSpecification runSpecification) {
 		JobLogger.stopPlatformLogging();
 		JobLogger.startCoreLogging();
-		JobLogger.collectYarnLogs(benchmarkRun.getLogDir());
+
+		BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
+		BenchmarkRun benchmarkRun = runSpecification.getBenchmarkRun();
+
+
+		JobLogger.collectYarnLogs(benchmarkRunSetup.getLogDir());
 		LOG.info("Extracting performance metrics from logs.");
-		Path platformLogPath = benchmarkRun.getLogDir().resolve("platform");
+		Path platformLogPath = benchmarkRunSetup.getLogDir().resolve("platform");
 
 		final List<Double> superstepTimes = new ArrayList<>();
 
@@ -321,9 +336,10 @@ public class GiraphPlatform implements GranulaAwarePlatform {
 	}
 
 	@Override
-	public void terminate(BenchmarkRun benchmarkRun) {
+	public void terminate(RunSpecification runSpecification) {
+		BenchmarkRunSetup benchmarkRunSetup = runSpecification.getBenchmarkRunSetup();
 
-		Path driverPath = benchmarkRun.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
+		Path driverPath = benchmarkRunSetup.getLogDir().resolve("platform").resolve("driver.logs-graphalytics");
 		List<String> appIds = JobLogger.getYarnAppIds(driverPath);
 
 		for (String appId : appIds) {
