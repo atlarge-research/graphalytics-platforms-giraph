@@ -2,7 +2,7 @@
 
 [![Build Status](https://jenkins.tribler.org/buildStatus/icon?job=Graphalytics/Platforms/Giraph_master)](https://jenkins.tribler.org/job/Graphalytics/job/Platforms/job/Giraph_master/)
 
-### Build the platform driver
+### Getting started
 This is a [Graphalytics](https://github.com/ldbc/ldbc_graphalytics/) benchmark driver for [Apache Giraph](http://giraph.apache.org). Giraph is an iterative graph processing system built for high scalability, originated as the open-source counterpart to Google's Pregel, inspired by the Bulk Synchronous Parallel model of distributed computation introduced by Leslie Valiant.
 
   - Make sure that you have [installed Graphalytics](https://github.com/ldbc/ldbc_graphalytics/wiki/Documentation%3A-Software-Build#the-core-repository). 
