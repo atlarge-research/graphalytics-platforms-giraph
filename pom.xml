@@ -17,7 +17,7 @@
         <hadoop.version>2.5.1</hadoop.version>
         <platform.name>giraph</platform.name>
         <platform.version>1.2.0-hadoop2</platform.version>
-        <graphalytics.version>1.0.0</graphalytics.version>
+        <graphalytics.version>1.2.0-SNAPSHOT</graphalytics.version>
         <log4j.version>2.5</log4j.version>
     </properties>
 
@@ -327,7 +327,7 @@
             </releases>
             <id>graphalytics</id>
             <name>Graphalytics</name>
-            <url>https://atlarge.ewi.tudelft.nl/graphalytics/mvn</url>
+            <url>https://ldbcouncil.org/graphalytics-mvn/</url>
             <layout>default</layout>
         </repository>
     </repositories>
